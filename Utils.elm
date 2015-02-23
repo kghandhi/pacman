@@ -20,7 +20,8 @@ itow w h (x, y) =
     (fcols, frows) = (toFloat Pac.numCols, toFloat Pac.numRows)
   in
     ((fw / (2 * fcols)) + (lerp (-fw / 2) (fw / 2) 0 x fcols),
-     (-fh / (2 * frows)) + (lerp (-fh / 2) (fh / 2) frows y 0))
+     (-fh / (2 * frows)) + (lerp (-fh / 2) (-50 + fh / 2) frows y 0))
+    -- -50 is to account for height of the title
 
 --converts from collage world space to array index space
 wtoi : Int -> Int -> (Pac.Pos) -> (Pac.Pos)
