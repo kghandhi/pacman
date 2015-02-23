@@ -154,10 +154,10 @@ renderPacman p bSide =
     let
         pman_form =
             case p.dir of
-              Left -> M.pacman ((toFloat bSide) / 2) M.Left
-              Right -> M.pacman ((toFloat bSide) / 2) M.Right
-              Up -> M.pacman ((toFloat bSide) / 2) M.Up
-              Down -> M.pacman ((toFloat bSide) / 2) M.Down
+              Left -> M.pacman M.Left ((toFloat bSide) / 2)
+              Right -> M.pacman M.Right ((toFloat bSide) / 2)
+              Up -> M.pacman M.Up ((toFloat bSide) / 2)
+              Down -> M.pacman M.Down ((toFloat bSide) / 2)
     in
       Clg.collage bSide bSide [pman_form]
 

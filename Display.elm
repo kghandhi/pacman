@@ -22,14 +22,13 @@ import String
 import Keyboard as Key
 
 -- View
-
 testerFun : Box -> Int -> El.Element
 testerFun b bSide =
     case b of
-      Empty -> Clg.collage bSide bSide [Clg.filled black (Clg.square (toFloat bSide))]
-      Pellet -> Clg.collage bSide bSide [Clg.filled white (Clg.square (toFloat bSide))]
-      Pill -> Clg.collage bSide bSide [Clg.filled yellow (Clg.square (toFloat bSide))]
-      Wall -> Clg.collage bSide bSide [Clg.filled blue (Clg.square (toFloat bSide))]
+      Empty -> Clg.collage bSide bSide [Mod.emptySpace (toFloat bSide)]
+      Pellet -> Clg.collage bSide bSide [Mod.pellet ((toFloat bSide) / 6)]
+      Pill -> Clg.collage bSide bSide [Mod.pill ((toFloat bSide) / 3)]
+      Wall -> Clg.collage bSide bSide [Mod.wall (toFloat bSide)]
 
 
 view : (Int, Int) -> State -> El.Element
@@ -39,13 +38,17 @@ view (w, h) st =
         rowBuilder bxs = El.flow El.left (List.map (\b -> testerFun b bSide) bxs)
         colBuilder rws = El.flow El.down rws
         pac_pos = Utl.itow (bSide * numCols) (bSide * numRows) st.pacman.pos
+        pac_dir = case st.pacman.dir of
+                    Left -> Mod.Left
+                    Right -> Mod.Right
+                    Up -> Mod.Up
+                    Down -> Mod.Down
     in
       El.color black
             <| Clg.collage w h
                  [ Clg.toForm <| colBuilder (List.map rowBuilder st.board)
-                 , Clg.move pac_pos <| Mod.pacman <| toFloat <| bSide // 2
+                 , Clg.move pac_pos <| Mod.pacman pac_dir <| toFloat <| bSide // 2
                  ]
-
 
 -- Controller
 

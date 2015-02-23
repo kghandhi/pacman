@@ -24,8 +24,8 @@ emptySpace r =
     filled black <| square r
 
 
-pacman : Float -> ModDir -> Form
-pacman r d =
+pacman : ModDir -> Float -> Form
+pacman d r =
     let
         m = r / (sqrt 2)
         tri = case d of
@@ -97,10 +97,10 @@ main =
   -- Sig.map2 view Win.dimensions (Sig.foldp upstate [(pacman 25),(pellet 10),(pill 25),(cherry 30 40)] (Tm.every Tm.second))
 
     Sig.map2 view Win.dimensions (Sig.foldp upstate
-                                         [(pacman 25 Left),
-                                          (pacman 25 Right),
-                                          (pacman 25 Up),
-                                          (pacman 25 Down)] (Tm.every Tm.second))
+                                         [(pacman Left 25),
+                                          (pacman Right 25),
+                                          (pacman Up 25),
+                                          (pacman Down 25)] (Tm.every Tm.second))
 
 
 view : (Int, Int) -> List Form -> Element
