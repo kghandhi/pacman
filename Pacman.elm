@@ -115,7 +115,7 @@ initBoard =
 initPacman : Pacman
 initPacman =
     {
-      pos=(0,-9),
+      pos=(13.5, 23),
       dir=Left
     }
 
@@ -139,54 +139,3 @@ initState =
       pinky=(initGhost (0,0) (-12,18)),
       clyde=(initGhost (2.5,0) (-14,-17))
     }
-
-
-
--- View
-
-title w h =
-    El.container w (h + 20) El.middle
-          <| El.flow El.down
-                 [El.image w h "/pacman-logo.jpg", El.spacer w 20]
-
-renderPacman : Pacman -> Int -> El.Element
-renderPacman p bSide =
-    let
-        pman_form =
-            case p.dir of
-              Left -> M.pacman M.Left ((toFloat bSide) / 2)
-              Right -> M.pacman M.Right ((toFloat bSide) / 2)
-              Up -> M.pacman M.Up ((toFloat bSide) / 2)
-              Down -> M.pacman M.Down ((toFloat bSide) / 2)
-    in
-      Clg.collage bSide bSide [pman_form]
-
-testerFun : Box -> Int -> El.Element
-testerFun b bSide =
-    case b of
-      Empty -> Clg.collage bSide bSide [M.emptySpace (toFloat bSide)]
-      Pellet -> Clg.collage bSide bSide [M.pellet ((toFloat bSide) / 6)]
-      Pill -> Clg.collage bSide bSide [M.pill ((toFloat bSide) / 3)]
-      Wall -> Clg.collage bSide bSide [M.wall (toFloat bSide)]
-
-hspace = El.spacer 10
-
-view : (Int, Int) -> El.Element
-view (w, h) =
-    let
-        bSide = (h - 45) // 36
-        titleHeight = 30
-        titleWidth = bSide * 23
-        ttl = title titleWidth titleHeight
-        rowBuilder bxs = El.flow El.left (List.map (\b -> testerFun b bSide) bxs)
-        colBuilder rws = El.flow El.down ([ttl] ++ rws)
-
-    in
-      El.color black
-            <| El.container w h El.middle
-            <| colBuilder (List.map rowBuilder initBoard)
-
-
--- Controller
-main : Signal El.Element
-main = view <~ Window.dimensions
