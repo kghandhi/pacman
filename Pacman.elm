@@ -1,4 +1,8 @@
+module Pacman where
+
+import Models as M
 import List ((::))
+import List ((++))
 import List
 import Array as A
 
@@ -14,6 +18,8 @@ import String
 import Keyboard as Key
 
 type alias Pos = (Float, Float)
+
+-- Model
 
 type alias State =
     { points : Int,
@@ -65,6 +71,7 @@ allPellets n = List.repeat n Pellet
 allEmpty : Int -> List Box
 allEmpty n = List.repeat n Empty
 
+-- essentially hardcoaded for the dimensions above. Woops.
 initBoard : Board
 initBoard =
     let
@@ -133,25 +140,47 @@ initState =
       clyde=(initGhost (2.5,0) (-14,-17))
     }
 
--- Model
+
 
 -- View
+
+title w h =
+    El.container w (h + 20) El.middle
+          <| El.flow El.down
+                 [El.image w h "/pacman-logo.jpg", El.spacer w 20]
+
+renderPacman : Pacman -> Int -> El.Element
+renderPacman p bSide =
+    let
+        pman_form =
+            case p.dir of
+              Left -> M.pacman ((toFloat bSide) / 2) M.Left
+              Right -> M.pacman ((toFloat bSide) / 2) M.Right
+              Up -> M.pacman ((toFloat bSide) / 2) M.Up
+              Down -> M.pacman ((toFloat bSide) / 2) M.Down
+    in
+      Clg.collage bSide bSide [pman_form]
 
 testerFun : Box -> Int -> El.Element
 testerFun b bSide =
     case b of
-      Empty -> Clg.collage bSide bSide [Clg.filled black (Clg.square (toFloat bSide))]
-      Pellet -> Clg.collage bSide bSide [Clg.filled white (Clg.square (toFloat bSide))]
-      Pill -> Clg.collage bSide bSide [Clg.filled yellow (Clg.square (toFloat bSide))]
-      Wall -> Clg.collage bSide bSide [Clg.filled blue (Clg.square (toFloat bSide))]
+      Empty -> Clg.collage bSide bSide [M.emptySpace (toFloat bSide)]
+      Pellet -> Clg.collage bSide bSide [M.pellet ((toFloat bSide) / 6)]
+      Pill -> Clg.collage bSide bSide [M.pill ((toFloat bSide) / 3)]
+      Wall -> Clg.collage bSide bSide [M.wall (toFloat bSide)]
 
+hspace = El.spacer 10
 
 view : (Int, Int) -> El.Element
 view (w, h) =
     let
-        bSide = h // 36
+        bSide = (h - 45) // 36
+        titleHeight = 30
+        titleWidth = bSide * 23
+        ttl = title titleWidth titleHeight
         rowBuilder bxs = El.flow El.left (List.map (\b -> testerFun b bSide) bxs)
-        colBuilder rws = El.flow El.down rws
+        colBuilder rws = El.flow El.down ([ttl] ++ rws)
+
     in
       El.color black
             <| El.container w h El.middle

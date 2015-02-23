@@ -13,14 +13,20 @@ wallLocs =
 isWall : Pac.Pos -> Bool
 isWall (x, y) =
   let
-    cx = clamp 0 Pac.numCols <| round x
-    cy = clamp 0 Pac.numRows <| round y
-    (Just rw) = Arr.get cy wallLocs
-    (Just bx) = Arr.get cx rw
+    (cxl, cxr) = (clamp 0 (Pac.numCols - 1) <| floor   x,
+                  clamp 0 (Pac.numCols - 1) <| ceiling x)
+    (cyu, cyd) = (clamp 0 (Pac.numRows - 1) <| floor   y,
+                  clamp 0 (Pac.numRows - 1) <| ceiling y)
+    (Just rwu,  Just rwd) = (Arr.get cyu wallLocs, Arr.get cyd wallLocs)
+    (Just bxul, Just bxur, Just bxdl, Just bxdr) =
+      (Arr.get cxl rwu, Arr.get cxl rwd, Arr.get cxr rwu, Arr.get cxr rwd)
   in
-    case bx of
-      Pac.Wall -> True
-      _    -> False
+    case (bxul, bxur, bxdl, bxdr) of
+      (Pac.Wall, _, _, _) -> True
+      (_, Pac.Wall, _, _) -> True
+      (_, _, Pac.Wall, _) -> True
+      (_, _, _, Pac.Wall) -> True
+      _                   -> False
 
 pos_add : Pac.Pos -> Pac.Pos -> Pac.Pos
 pos_add (x, y) (x', y') =
@@ -38,10 +44,12 @@ updatePacPos pacman_old =
         Pac.Right -> pos_add old_pos ( delta,  0.0)
         Pac.Up    -> pos_add old_pos ( 0.0, -delta)
         Pac.Down  -> pos_add old_pos ( 0.0,  delta)
+    (newx, newy) = new_pos
   in
-    {pacman_old | pos <- if isWall new_pos
-                         then old_pos
-                         else new_pos}
+    {pacman_old | pos <- if  | isWall new_pos         -> old_pos
+                             | newx > toFloat Pac.numCols - 1 -> (0, newy)
+                             | newx < 0               -> (toFloat Pac.numCols - 1, newy)
+                             | otherwise              -> new_pos}
 
 --should be used to update dir when most recent key pressed is arrow key
 updateDir : Key.KeyCode -> Pac.Pacman -> Pac.Pacman

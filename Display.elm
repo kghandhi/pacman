@@ -38,11 +38,12 @@ view (w, h) st =
         bSide = h // 36
         rowBuilder bxs = El.flow El.left (List.map (\b -> testerFun b bSide) bxs)
         colBuilder rws = El.flow El.down rws
+        pac_pos = Utl.itow (bSide * numCols) (bSide * numRows) st.pacman.pos
     in
       El.color black
             <| Clg.collage w h
                  [ Clg.toForm <| colBuilder (List.map rowBuilder st.board)
-                 , Clg.move (Utl.itow ((w * numCols) // 36) ((h * numRows) // 36) st.pacman.pos) <| Mod.pacman <| toFloat bSide
+                 , Clg.move pac_pos <| Mod.pacman <| toFloat <| bSide // 2
                  ]
 
 
@@ -54,8 +55,8 @@ actions : Signal Action
 actions =
   Signal.merge
     (Signal.map (\k -> KeyAction k) Key.lastPressed)
-    (Signal.sampleOn (every <| second / 2)  <| Signal.constant TimeAction)
-    
+    (Signal.sampleOn (every <| second / 40)  <| Signal.constant TimeAction)
+
 currState : Signal State
 currState =
   Signal.dropRepeats

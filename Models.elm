@@ -8,12 +8,36 @@ import Signal as Sig
 import Time as Tm
 import Window as Win
 
+-- direction hack to avoid circular dependency
+type ModDir = Left | Right | Up | Down
+
 background : Float -> Float -> Form
 background w h =
   filled black <| rect w h
 
-pacman : Float -> Form
-pacman r =
+wall : Float -> Form
+wall r =
+    filled blue <| square r
+
+emptySpace : Float -> Form
+emptySpace r =
+    filled black <| square r
+
+
+pacman : Float -> ModDir -> Form
+pacman r d =
+    let
+        m = r / (sqrt 2)
+        tri = case d of
+                Left -> polygon [(0,0), (-r,-m), (-r,m)]
+                Right -> polygon [(0,0), (r,-m), (r,m)]
+                Up  -> polygon [(0,0), (m,r), (-m,r)]
+                Down -> polygon [(0,0), (m,-r), (-m,-r)]
+    in
+      group [filled yellow <| circle r, filled black <| tri]
+
+pacman' : Float -> Form
+pacman' r =
   filled yellow <| circle r
 
 pellet : Float -> Form
@@ -22,7 +46,7 @@ pellet r =
 
 pill : Float -> Form
 pill r =
-  filled white <| circle r
+  filled lightOrange <| circle r
 
 fruit : Form
 fruit =
@@ -70,7 +94,14 @@ upstate _ (f::fs) =
 
 main : Signal Element
 main =
-  Sig.map2 view Win.dimensions (Sig.foldp upstate [(pacman 25),(pellet 10),(pill 25),(cherry 30 40)] (Tm.every Tm.second))
+  -- Sig.map2 view Win.dimensions (Sig.foldp upstate [(pacman 25),(pellet 10),(pill 25),(cherry 30 40)] (Tm.every Tm.second))
+
+    Sig.map2 view Win.dimensions (Sig.foldp upstate
+                                         [(pacman 25 Left),
+                                          (pacman 25 Right),
+                                          (pacman 25 Up),
+                                          (pacman 25 Down)] (Tm.every Tm.second))
+
 
 view : (Int, Int) -> List Form -> Element
 view (w, h) (f::_) =
