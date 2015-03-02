@@ -51,7 +51,7 @@ displayBox b bSide =
 
 scoreStyle : Txt.Style
 scoreStyle = {typeface = ["Andale Mono", "monospace"]
-             , height = Just 15
+             , height = Just 45
              , color = white
              , bold = False
              , italic = False
@@ -69,9 +69,8 @@ view (w, h) st =
               |> Txt.fromString
               |> Txt.style scoreStyle
               |> Txt.leftAligned
-        scoreTitle = El.flow El.right [ttl, score]
         rowBuilder bxs = El.flow El.left (List.map (\b -> displayBox b bSide) bxs)
-        colBuilder rws = El.flow El.down ([ttl] ++ rws)
+        colBuilder rws = El.flow El.down ([score] ++ rws)
         pac_pos = Utl.itow (bSide * numCols) (titleHeight + 20 + (bSide * numRows)) st.pacman.pos
         pac_dir = case st.pacman.dir of
                     Left -> Mod.Left
@@ -106,10 +105,13 @@ upstate a s =
   case a of
     KeyAction k -> {s | pacman <- Ctr.updateDir  k s.pacman}
     TimeAction  ->
-        let (pells, newBoard) =  BCtr.updateBoard s.board s.pacman in
+        let
+            (pells, newBoard) =  BCtr.updateBoard s.board s.pacman
+            old_pts = s.points
+        in
         {s | pacman <- Ctr.updatePacPos s.pacman
         , board <- newBoard
-        , points <- s.points + pells}
+        , points <- old_pts + pells}
 
 main : Signal El.Element
 main = view <~ Window.dimensions ~ currState

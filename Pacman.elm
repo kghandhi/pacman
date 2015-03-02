@@ -22,7 +22,8 @@ type alias Pos = (Float, Float)
 -- Model
 pelletPoint = 10
 pillPoint = 50
-fstGhostPoint = 200
+ghostPoints = [200, 400, 800, 1600, 3000]
+cherryPoint = 100
 
 type alias State =
     { points : Int,

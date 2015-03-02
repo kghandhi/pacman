@@ -23,6 +23,8 @@ emptySpace : Float -> Form
 emptySpace r =
     filled black <| square r
 
+gate r =
+    filled white <| square r
 
 pacman : ModDir -> Float -> Form
 pacman d r =

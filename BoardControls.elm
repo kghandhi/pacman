@@ -19,8 +19,8 @@ modifyRow cl_ix rw_ix bd =
     in
       Arr.set rw_ix updatedRow bd
 
-removeTreat : Pac.Pos -> Pac.Box -> Pac.Board -> (Bool, Array (Array Pac.Box))
-removeTreat (x, y) treat bd =
+removeTreat : Pac.Pos -> (Pac.Box -> Bool) -> Pac.Board -> (Bool, Array (Array Pac.Box))
+removeTreat (x, y) treat_fn bd =
     let
       bd' = btoa bd
       (cxl, cxr) = (clamp 0 (Pac.numCols - 1) <| floor  x,
@@ -31,19 +31,33 @@ removeTreat (x, y) treat bd =
       (Just bxul, Just bxur, Just bxdl, Just bxdr) =
           (Arr.get cxl rwu, Arr.get cxl rwd, Arr.get cxr rwu, Arr.get cxr rwd)
   in
-    case (bxul, bxur, bxdl, bxdr) of
-      (treat, _, _, _) -> (True, modifyRow cxl cyu bd')
-      (_, treat, _, _) -> (True, modifyRow cxl cyd bd')
-      (_, _, treat, _) -> (True, modifyRow cxr cyu bd')
-      (_, _, _, treat) -> (True, modifyRow cxr cyd bd')
-      _                   -> (False, bd')
+    case (treat_fn bxul, treat_fn bxur, treat_fn bxdl, treat_fn bxdr) of
+      (True, _, _, _) -> (True, modifyRow cxl cyu bd')
+      (_, True, _, _) -> (True, modifyRow cxl cyd bd')
+      (_, _, True, _) -> (True, modifyRow cxr cyu bd')
+      (_, _, _, True) -> (True, modifyRow cxr cyd bd')
+      _                -> (False, bd')
+
+isPellet t =
+    case t of
+      Pac.Pellet -> True
+      _ -> False
+
+isPill t =
+    case t of
+      Pac.Pill -> True
+      _ -> False
 
 updateBoard : Pac.Board -> Pac.Pacman -> (Int, Pac.Board)
 updateBoard board_old pacman_old =
     let
-        (bPells, board_new1) =  removeTreat pacman_old.pos Pac.Pellet board_old
-        (bPills, board_new2) = removeTreat pacman_old.pos Pac.Pill board_old
+        (bPells, board_new1) =  removeTreat pacman_old.pos isPellet board_old
+        (bPills, board_new2) = removeTreat pacman_old.pos isPill board_old
     in
       if | bPells -> (Pac.pelletPoint, atob board_new1)
-         | bPills -> (Pac.pillPoint, atob board_new2)
+         | bPills ->  (Pac.pillPoint, atob board_new2)
          | otherwise -> (0, board_old)
+      -- case (bPells, bPills) of
+      --   (True, False) -> (Pac.pelletPoint, atob board_new1)
+      --   (False, True) -> (Pac.pillPoint, atob board_new2)
+      --   (False, False) -> (0, board_old)
