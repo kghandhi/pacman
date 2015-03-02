@@ -36,9 +36,6 @@ pacman d r =
     in
       group [filled yellow <| circle r, filled black <| tri]
 
-pacman' : Float -> Form
-pacman' r =
-  filled yellow <| circle r
 
 pellet : Float -> Form
 pellet r =
