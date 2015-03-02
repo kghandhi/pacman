@@ -2,6 +2,7 @@ module Display where
 
 import Pacman (..)
 import Controls as Ctr
+import BoardControls as BCtr
 import Models   as Mod
 import Utils    as Utl
 import Time (..)
@@ -90,7 +91,8 @@ upstate : Action -> State -> State
 upstate a s =
   case a of
     KeyAction k -> {s | pacman <- Ctr.updateDir  k s.pacman}
-    TimeAction  -> {s | pacman <- Ctr.updatePacPos s.pacman}
+    TimeAction  -> {s | pacman <- Ctr.updatePacPos s.pacman
+                   , board <- BCtr.updateBoard s.board s.pacman}
 
 main : Signal El.Element
 main = view <~ Window.dimensions ~ currState
