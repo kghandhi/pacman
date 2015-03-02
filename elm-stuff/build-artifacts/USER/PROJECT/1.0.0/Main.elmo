@@ -1,0 +1,365 @@
+Elm.Main = Elm.Main || {};
+Elm.Main.make = function (_elm) {
+   "use strict";
+   _elm.Main = _elm.Main || {};
+   if (_elm.Main.values)
+   return _elm.Main.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   _P = _N.Ports.make(_elm),
+   $moduleName = "Main",
+   $Basics = Elm.Basics.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Models = Elm.Models.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Window = Elm.Window.make(_elm);
+   var testerFun = F2(function (b,
+   bSide) {
+      return function () {
+         switch (b.ctor)
+         {case "Empty":
+            return A3($Graphics$Collage.collage,
+              bSide,
+              bSide,
+              _L.fromArray([$Models.emptySpace($Basics.toFloat(bSide))]));
+            case "Pellet":
+            return A3($Graphics$Collage.collage,
+              bSide,
+              bSide,
+              _L.fromArray([$Models.pellet($Basics.toFloat(bSide) / 6)]));
+            case "Pill":
+            return A3($Graphics$Collage.collage,
+              bSide,
+              bSide,
+              _L.fromArray([$Models.pill($Basics.toFloat(bSide) / 3)]));
+            case "Wall":
+            return A3($Graphics$Collage.collage,
+              bSide,
+              bSide,
+              _L.fromArray([$Models.wall($Basics.toFloat(bSide))]));}
+         _U.badCase($moduleName,
+         "between lines 146 and 150");
+      }();
+   });
+   var numCols = 28;
+   var numRows = 31;
+   var Over = {ctor: "Over"};
+   var Loading = {ctor: "Loading"};
+   var Active = {ctor: "Active"};
+   var Pill = {ctor: "Pill"};
+   var Fruit = {ctor: "Fruit"};
+   var Empty = {ctor: "Empty"};
+   var allEmpty = function (n) {
+      return A2($List.repeat,
+      n,
+      Empty);
+   };
+   var Pellet = {ctor: "Pellet"};
+   var allPellets = function (n) {
+      return A2($List.repeat,
+      n,
+      Pellet);
+   };
+   var Wall = {ctor: "Wall"};
+   var allWalls = function (n) {
+      return A2($List.repeat,
+      n,
+      Wall);
+   };
+   var initBoard = function () {
+      var mapper = function (half) {
+         return A2($List.append,
+         half,
+         $List.reverse(half));
+      };
+      var r28 = $List.concat(_L.fromArray([_L.fromArray([Wall
+                                                        ,Pellet])
+                                          ,allWalls(10)
+                                          ,_L.fromArray([Pellet,Wall])]));
+      var r29 = r28;
+      var r25 = $List.concat(_L.fromArray([allWalls(3)
+                                          ,_L.fromArray([Pellet])
+                                          ,allWalls(2)
+                                          ,_L.fromArray([Pellet])
+                                          ,allWalls(2)
+                                          ,_L.fromArray([Pellet])
+                                          ,allWalls(4)]));
+      var r26 = r25;
+      var r24 = $List.concat(_L.fromArray([_L.fromArray([Wall
+                                                        ,Pill])
+                                          ,allPellets(2)
+                                          ,allWalls(2)
+                                          ,allPellets(7)
+                                          ,_L.fromArray([Empty])]));
+      var r21 = $List.concat(_L.fromArray([_L.fromArray([Wall])
+                                          ,allPellets(12)
+                                          ,_L.fromArray([Wall])]));
+      var r20 = $List.concat(_L.fromArray([allWalls(6)
+                                          ,_L.fromArray([Pellet])
+                                          ,allWalls(2)
+                                          ,_L.fromArray([Empty])
+                                          ,allWalls(4)]));
+      var r19 = $List.concat(_L.fromArray([allEmpty(5)
+                                          ,_L.fromArray([Wall,Pellet])
+                                          ,allWalls(2)
+                                          ,_L.fromArray([Empty])
+                                          ,allWalls(4)]));
+      var r15 = $List.concat(_L.fromArray([allEmpty(6)
+                                          ,_L.fromArray([Pellet])
+                                          ,allEmpty(3)
+                                          ,_L.fromArray([Wall])
+                                          ,allEmpty(3)]));
+      var r14 = $List.concat(_L.fromArray([allWalls(6)
+                                          ,_L.fromArray([Pellet])
+                                          ,allWalls(2)
+                                          ,_L.fromArray([Empty,Wall])
+                                          ,allEmpty(3)]));
+      var r16 = r14;
+      var r13 = $List.concat(_L.fromArray([allEmpty(5)
+                                          ,_L.fromArray([Wall,Pellet])
+                                          ,allWalls(2)
+                                          ,_L.fromArray([Empty])
+                                          ,allWalls(4)]));
+      var r17 = r13;
+      var r12 = $List.concat(_L.fromArray([allEmpty(5)
+                                          ,_L.fromArray([Wall,Pellet])
+                                          ,allWalls(2)
+                                          ,allEmpty(5)]));
+      var r18 = r12;
+      var r11 = $List.concat(_L.fromArray([allEmpty(5)
+                                          ,_L.fromArray([Wall,Pellet])
+                                          ,allWalls(5)
+                                          ,_L.fromArray([Empty,Wall])]));
+      var r10 = $List.concat(_L.fromArray([allWalls(6)
+                                          ,_L.fromArray([Pellet])
+                                          ,allWalls(5)
+                                          ,_L.fromArray([Empty,Wall])]));
+      var r9 = $List.concat(_L.fromArray([_L.fromArray([Wall])
+                                         ,allPellets(6)
+                                         ,allWalls(2)
+                                         ,allPellets(4)
+                                         ,_L.fromArray([Wall])]));
+      var r27 = r9;
+      var r7 = $List.concat(_L.fromArray([_L.fromArray([Wall
+                                                       ,Pellet])
+                                         ,allWalls(4)
+                                         ,_L.fromArray([Pellet])
+                                         ,allWalls(2)
+                                         ,_L.fromArray([Pellet])
+                                         ,allWalls(4)]));
+      var r8 = r7;
+      var r6 = $List.concat(_L.fromArray([_L.fromArray([Wall])
+                                         ,allPellets(13)]));
+      var r30 = r6;
+      var r4 = $List.concat(_L.fromArray([_L.fromArray([Wall
+                                                       ,Pill])
+                                         ,allWalls(4)
+                                         ,_L.fromArray([Pellet])
+                                         ,allWalls(5)
+                                         ,_L.fromArray([Pellet,Wall])]));
+      var r3 = $List.concat(_L.fromArray([_L.fromArray([Wall
+                                                       ,Pellet])
+                                         ,allWalls(4)
+                                         ,_L.fromArray([Pellet])
+                                         ,allWalls(5)
+                                         ,_L.fromArray([Pellet,Wall])]));
+      var r5 = r3;
+      var r22 = r3;
+      var r23 = r3;
+      var r2 = $List.concat(_L.fromArray([_L.fromArray([Wall])
+                                         ,allPellets((numCols / 2 | 0) - 2)
+                                         ,_L.fromArray([Wall])]));
+      var r1 = allWalls(numCols / 2 | 0);
+      var r31 = r1;
+      var rows = _L.fromArray([r1
+                              ,r2
+                              ,r3
+                              ,r4
+                              ,r5
+                              ,r6
+                              ,r7
+                              ,r8
+                              ,r9
+                              ,r10
+                              ,r11
+                              ,r12
+                              ,r13
+                              ,r14
+                              ,r15
+                              ,r16
+                              ,r17
+                              ,r18
+                              ,r19
+                              ,r20
+                              ,r21
+                              ,r22
+                              ,r23
+                              ,r24
+                              ,r25
+                              ,r26
+                              ,r27
+                              ,r28
+                              ,r29
+                              ,r30
+                              ,r31]);
+      return A2($List.map,
+      mapper,
+      rows);
+   }();
+   var view = function (_v1) {
+      return function () {
+         switch (_v1.ctor)
+         {case "_Tuple2":
+            return function () {
+                 var colBuilder = function (rws) {
+                    return A2($Graphics$Element.flow,
+                    $Graphics$Element.down,
+                    rws);
+                 };
+                 var bSide = _v1._1 / 36 | 0;
+                 var rowBuilder = function (bxs) {
+                    return A2($Graphics$Element.flow,
+                    $Graphics$Element.left,
+                    A2($List.map,
+                    function (b) {
+                       return A2(testerFun,b,bSide);
+                    },
+                    bxs));
+                 };
+                 return $Graphics$Element.color($Color.black)(A3($Graphics$Element.container,
+                 _v1._0,
+                 _v1._1,
+                 $Graphics$Element.middle)(colBuilder(A2($List.map,
+                 rowBuilder,
+                 initBoard))));
+              }();}
+         _U.badCase($moduleName,
+         "between lines 155 and 162");
+      }();
+   };
+   var main = A2($Signal._op["<~"],
+   view,
+   $Window.dimensions);
+   var Ghost = F4(function (a,
+   b,
+   c,
+   d) {
+      return {_: {}
+             ,mode: b
+             ,pos: a
+             ,self: d
+             ,target: c};
+   });
+   var Dead = {ctor: "Dead"};
+   var Scared = {ctor: "Scared"};
+   var Normal = {ctor: "Normal"};
+   var Scatter = {ctor: "Scatter"};
+   var initGhost = F2(function (start,
+   target) {
+      return {_: {}
+             ,mode: Scatter
+             ,pos: start
+             ,self: Normal
+             ,target: target};
+   });
+   var Flee = {ctor: "Flee"};
+   var Chase = {ctor: "Chase"};
+   var Pacman = F2(function (a,b) {
+      return {_: {},dir: b,pos: a};
+   });
+   var Down = {ctor: "Down"};
+   var Up = {ctor: "Up"};
+   var Right = {ctor: "Right"};
+   var Left = {ctor: "Left"};
+   var initPacman = {_: {}
+                    ,dir: Left
+                    ,pos: {ctor: "_Tuple2"
+                          ,_0: 0
+                          ,_1: -9}};
+   var initState = {_: {}
+                   ,blinky: A2(initGhost,
+                   {ctor: "_Tuple2",_0: 0,_1: 3},
+                   {ctor: "_Tuple2",_0: 12,_1: 18})
+                   ,board: initBoard
+                   ,clyde: A2(initGhost,
+                   {ctor: "_Tuple2",_0: 2.5,_1: 0},
+                   {ctor: "_Tuple2"
+                   ,_0: -14
+                   ,_1: -17})
+                   ,extraLives: 2
+                   ,gameState: Loading
+                   ,inky: A2(initGhost,
+                   {ctor: "_Tuple2"
+                   ,_0: -2.5
+                   ,_1: 0},
+                   {ctor: "_Tuple2"
+                   ,_0: 14
+                   ,_1: -17})
+                   ,pacman: initPacman
+                   ,pinky: A2(initGhost,
+                   {ctor: "_Tuple2",_0: 0,_1: 0},
+                   {ctor: "_Tuple2"
+                   ,_0: -12
+                   ,_1: 18})
+                   ,points: 0};
+   var State = F9(function (a,
+   b,
+   c,
+   d,
+   e,
+   f,
+   g,
+   h,
+   i) {
+      return {_: {}
+             ,blinky: f
+             ,board: d
+             ,clyde: i
+             ,extraLives: b
+             ,gameState: c
+             ,inky: g
+             ,pacman: e
+             ,pinky: h
+             ,points: a};
+   });
+   _elm.Main.values = {_op: _op
+                      ,State: State
+                      ,Left: Left
+                      ,Right: Right
+                      ,Up: Up
+                      ,Down: Down
+                      ,Pacman: Pacman
+                      ,Chase: Chase
+                      ,Flee: Flee
+                      ,Scatter: Scatter
+                      ,Normal: Normal
+                      ,Scared: Scared
+                      ,Dead: Dead
+                      ,Ghost: Ghost
+                      ,Wall: Wall
+                      ,Pellet: Pellet
+                      ,Empty: Empty
+                      ,Fruit: Fruit
+                      ,Pill: Pill
+                      ,Active: Active
+                      ,Loading: Loading
+                      ,Over: Over
+                      ,numRows: numRows
+                      ,numCols: numCols
+                      ,allWalls: allWalls
+                      ,allPellets: allPellets
+                      ,allEmpty: allEmpty
+                      ,initBoard: initBoard
+                      ,initPacman: initPacman
+                      ,initGhost: initGhost
+                      ,initState: initState
+                      ,testerFun: testerFun
+                      ,view: view
+                      ,main: main};
+   return _elm.Main.values;
+};

@@ -1,0 +1,227 @@
+Elm.Models = Elm.Models || {};
+Elm.Models.make = function (_elm) {
+   "use strict";
+   _elm.Models = _elm.Models || {};
+   if (_elm.Models.values)
+   return _elm.Models.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   _P = _N.Ports.make(_elm),
+   $moduleName = "Models",
+   $Basics = Elm.Basics.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm),
+   $Window = Elm.Window.make(_elm);
+   var upstate = F2(function (_v0,
+   _v1) {
+      return function () {
+         switch (_v1.ctor)
+         {case "::": return function () {
+                 return A2($Basics._op["++"],
+                 _v1._1,
+                 _L.fromArray([_v1._0]));
+              }();}
+         _U.badCase($moduleName,
+         "on line 93, column 3 to 12");
+      }();
+   });
+   var sz_toForm = F3(function (w,
+   h,
+   e) {
+      return A2($Graphics$Collage.scale,
+      w,
+      e);
+   });
+   var fruit = $Graphics$Collage.filled($Color.red)(A2($Graphics$Collage.ngon,
+   3,
+   1));
+   var cherry = F2(function (w,h) {
+      return A3(sz_toForm,
+      w,
+      h,
+      fruit);
+   });
+   var strawberry = F2(function (w,
+   h) {
+      return A3(sz_toForm,
+      w,
+      h,
+      fruit);
+   });
+   var orange = F2(function (w,h) {
+      return A3(sz_toForm,
+      w,
+      h,
+      fruit);
+   });
+   var apple = F2(function (w,h) {
+      return A3(sz_toForm,
+      w,
+      h,
+      fruit);
+   });
+   var melon = F2(function (w,h) {
+      return A3(sz_toForm,
+      w,
+      h,
+      fruit);
+   });
+   var galaxian = F2(function (w,
+   h) {
+      return A3(sz_toForm,
+      w,
+      h,
+      fruit);
+   });
+   var bell = F2(function (w,h) {
+      return A3(sz_toForm,
+      w,
+      h,
+      fruit);
+   });
+   var key = F2(function (w,h) {
+      return A3(sz_toForm,
+      w,
+      h,
+      fruit);
+   });
+   var pill = function (r) {
+      return $Graphics$Collage.filled($Color.lightOrange)($Graphics$Collage.circle(r));
+   };
+   var pellet = function (r) {
+      return $Graphics$Collage.filled($Color.white)($Graphics$Collage.circle(r));
+   };
+   var pacman$ = function (r) {
+      return $Graphics$Collage.filled($Color.yellow)($Graphics$Collage.circle(r));
+   };
+   var pacman = F2(function (d,r) {
+      return function () {
+         var m = r / $Basics.sqrt(2);
+         var tri = function () {
+            switch (d.ctor)
+            {case "Down":
+               return $Graphics$Collage.polygon(_L.fromArray([{ctor: "_Tuple2"
+                                                              ,_0: 0
+                                                              ,_1: 0}
+                                                             ,{ctor: "_Tuple2"
+                                                              ,_0: m
+                                                              ,_1: 0 - r}
+                                                             ,{ctor: "_Tuple2"
+                                                              ,_0: 0 - m
+                                                              ,_1: 0 - r}]));
+               case "Left":
+               return $Graphics$Collage.polygon(_L.fromArray([{ctor: "_Tuple2"
+                                                              ,_0: 0
+                                                              ,_1: 0}
+                                                             ,{ctor: "_Tuple2"
+                                                              ,_0: 0 - r
+                                                              ,_1: 0 - m}
+                                                             ,{ctor: "_Tuple2"
+                                                              ,_0: 0 - r
+                                                              ,_1: m}]));
+               case "Right":
+               return $Graphics$Collage.polygon(_L.fromArray([{ctor: "_Tuple2"
+                                                              ,_0: 0
+                                                              ,_1: 0}
+                                                             ,{ctor: "_Tuple2"
+                                                              ,_0: r
+                                                              ,_1: 0 - m}
+                                                             ,{ctor: "_Tuple2"
+                                                              ,_0: r
+                                                              ,_1: m}]));
+               case "Up":
+               return $Graphics$Collage.polygon(_L.fromArray([{ctor: "_Tuple2"
+                                                              ,_0: 0
+                                                              ,_1: 0}
+                                                             ,{ctor: "_Tuple2"
+                                                              ,_0: m
+                                                              ,_1: r}
+                                                             ,{ctor: "_Tuple2"
+                                                              ,_0: 0 - m
+                                                              ,_1: r}]));}
+            _U.badCase($moduleName,
+            "between lines 31 and 36");
+         }();
+         return $Graphics$Collage.group(_L.fromArray([$Graphics$Collage.filled($Color.yellow)($Graphics$Collage.circle(r))
+                                                     ,$Graphics$Collage.filled($Color.black)(tri)]));
+      }();
+   });
+   var emptySpace = function (r) {
+      return $Graphics$Collage.filled($Color.black)($Graphics$Collage.square(r));
+   };
+   var wall = function (r) {
+      return $Graphics$Collage.filled($Color.blue)($Graphics$Collage.square(r));
+   };
+   var background = F2(function (w,
+   h) {
+      return $Graphics$Collage.filled($Color.black)(A2($Graphics$Collage.rect,
+      w,
+      h));
+   });
+   var view = F2(function (_v7,
+   _v8) {
+      return function () {
+         switch (_v8.ctor)
+         {case "::": return function () {
+                 switch (_v7.ctor)
+                 {case "_Tuple2":
+                    return A3($Graphics$Collage.collage,
+                      _v7._0,
+                      _v7._1,
+                      _L.fromArray([A2(background,
+                                   $Basics.toFloat(_v7._0),
+                                   $Basics.toFloat(_v7._1))
+                                   ,_v8._0]));}
+                 _U.badCase($moduleName,
+                 "on line 108, column 3 to 54");
+              }();}
+         _U.badCase($moduleName,
+         "on line 108, column 3 to 54");
+      }();
+   });
+   var Down = {ctor: "Down"};
+   var Up = {ctor: "Up"};
+   var Right = {ctor: "Right"};
+   var Left = {ctor: "Left"};
+   var main = A3($Signal.map2,
+   view,
+   $Window.dimensions,
+   A3($Signal.foldp,
+   upstate,
+   _L.fromArray([A2(pacman,Left,25)
+                ,A2(pacman,Right,25)
+                ,A2(pacman,Up,25)
+                ,A2(pacman,Down,25)]),
+   $Time.every($Time.second)));
+   _elm.Models.values = {_op: _op
+                        ,Left: Left
+                        ,Right: Right
+                        ,Up: Up
+                        ,Down: Down
+                        ,background: background
+                        ,wall: wall
+                        ,emptySpace: emptySpace
+                        ,pacman: pacman
+                        ,pacman$: pacman$
+                        ,pellet: pellet
+                        ,pill: pill
+                        ,fruit: fruit
+                        ,sz_toForm: sz_toForm
+                        ,cherry: cherry
+                        ,strawberry: strawberry
+                        ,orange: orange
+                        ,apple: apple
+                        ,melon: melon
+                        ,galaxian: galaxian
+                        ,bell: bell
+                        ,key: key
+                        ,upstate: upstate
+                        ,main: main
+                        ,view: view};
+   return _elm.Models.values;
+};

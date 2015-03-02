@@ -19,10 +19,9 @@ modifyRow cl_ix rw_ix bd =
     in
       Arr.set rw_ix updatedRow bd
 
--- isPellet : Pac.Pos -> Pac.Board -> Bool
-removePellet : Pac.Pos -> Pac.Board -> (Bool, Array (Array Pac.Box))
-removePellet (x, y) bd =
-  let
+removeTreat : Pac.Pos -> Pac.Box -> Pac.Board -> (Bool, Array (Array Pac.Box))
+removeTreat (x, y) treat bd =
+    let
       bd' = btoa bd
       (cxl, cxr) = (clamp 0 (Pac.numCols - 1) <| floor  x,
                           clamp 0 (Pac.numCols - 1) <| ceiling x)
@@ -33,13 +32,18 @@ removePellet (x, y) bd =
           (Arr.get cxl rwu, Arr.get cxl rwd, Arr.get cxr rwu, Arr.get cxr rwd)
   in
     case (bxul, bxur, bxdl, bxdr) of
-      (Pac.Pellet, _, _, _) -> (True, modifyRow cxl cyu bd')
-      (_, Pac.Pellet, _, _) -> (True, modifyRow cxl cyd bd')
-      (_, _, Pac.Pellet, _) -> (True, modifyRow cxr cyu bd')
-      (_, _, _, Pac.Pellet) -> (True, modifyRow cxr cyd bd')
+      (treat, _, _, _) -> (True, modifyRow cxl cyu bd')
+      (_, treat, _, _) -> (True, modifyRow cxl cyd bd')
+      (_, _, treat, _) -> (True, modifyRow cxr cyu bd')
+      (_, _, _, treat) -> (True, modifyRow cxr cyd bd')
       _                   -> (False, bd')
 
-updateBoard : Pac.Board -> Pac.Pacman -> Pac.Board
+updateBoard : Pac.Board -> Pac.Pacman -> (Int, Pac.Board)
 updateBoard board_old pacman_old =
-    let (b, bd) =  (removePellet pacman_old.pos board_old) in
-    if b then atob bd else board_old
+    let
+        (bPells, board_new1) =  removeTreat pacman_old.pos Pac.Pellet board_old
+        (bPills, board_new2) = removeTreat pacman_old.pos Pac.Pill board_old
+    in
+      if | bPells -> (Pac.pelletPoint, atob board_new1)
+         | bPills -> (Pac.pillPoint, atob board_new2)
+         | otherwise -> (0, board_old)

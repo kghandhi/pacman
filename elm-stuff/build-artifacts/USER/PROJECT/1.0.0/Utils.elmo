@@ -1,0 +1,102 @@
+Elm.Utils = Elm.Utils || {};
+Elm.Utils.make = function (_elm) {
+   "use strict";
+   _elm.Utils = _elm.Utils || {};
+   if (_elm.Utils.values)
+   return _elm.Utils.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   _P = _N.Ports.make(_elm),
+   $moduleName = "Utils",
+   $Basics = Elm.Basics.make(_elm),
+   $Pacman = Elm.Pacman.make(_elm);
+   var lerp = F5(function (omin,
+   omax,
+   imin,
+   xx,
+   imax) {
+      return function () {
+         var x_min_i = xx - imin;
+         var delta_i = imax - imin;
+         var delta_o = omax - omin;
+         return omin + delta_o * x_min_i / delta_i;
+      }();
+   });
+   var itow = F3(function (w,
+   h,
+   _v0) {
+      return function () {
+         switch (_v0.ctor)
+         {case "_Tuple2":
+            return function () {
+                 var $ = {ctor: "_Tuple2"
+                         ,_0: $Basics.toFloat($Pacman.numCols)
+                         ,_1: $Basics.toFloat($Pacman.numRows)},
+                 fcols = $._0,
+                 frows = $._1;
+                 var $ = {ctor: "_Tuple2"
+                         ,_0: $Basics.toFloat(w)
+                         ,_1: $Basics.toFloat(h)},
+                 fw = $._0,
+                 fh = $._1;
+                 return {ctor: "_Tuple2"
+                        ,_0: fw / (2 * fcols) + A5(lerp,
+                        (0 - fw) / 2,
+                        fw / 2,
+                        0,
+                        _v0._0,
+                        fcols)
+                        ,_1: (0 - fh) / (2 * frows) + A5(lerp,
+                        (0 - fh) / 2,
+                        -50 + fh / 2,
+                        frows,
+                        _v0._1,
+                        0)};
+              }();}
+         _U.badCase($moduleName,
+         "between lines 18 and 23");
+      }();
+   });
+   var wtoi = F3(function (w,
+   h,
+   _v4) {
+      return function () {
+         switch (_v4.ctor)
+         {case "_Tuple2":
+            return function () {
+                 var $ = {ctor: "_Tuple2"
+                         ,_0: $Basics.toFloat($Pacman.numCols)
+                         ,_1: $Basics.toFloat($Pacman.numRows)},
+                 fcols = $._0,
+                 frows = $._1;
+                 var $ = {ctor: "_Tuple2"
+                         ,_0: $Basics.toFloat(w)
+                         ,_1: $Basics.toFloat(h)},
+                 fw = $._0,
+                 fh = $._1;
+                 return {ctor: "_Tuple2"
+                        ,_0: -0.5 + A5(lerp,
+                        0,
+                        fcols - 1,
+                        (0 - fw) / 2,
+                        _v4._0,
+                        fw / 2)
+                        ,_1: -0.5 + A5(lerp,
+                        frows - 1,
+                        0,
+                        (0 - fh) / 2,
+                        _v4._1,
+                        fh / 2)};
+              }();}
+         _U.badCase($moduleName,
+         "between lines 29 and 34");
+      }();
+   });
+   _elm.Utils.values = {_op: _op
+                       ,lerp: lerp
+                       ,itow: itow
+                       ,wtoi: wtoi};
+   return _elm.Utils.values;
+};

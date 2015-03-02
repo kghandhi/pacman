@@ -49,6 +49,15 @@ displayBox b bSide =
       Pill -> Clg.collage bSide bSide [Mod.pill ((toFloat bSide) / 3)]
       Wall -> Clg.collage bSide bSide [Mod.wall (toFloat bSide)]
 
+scoreStyle : Txt.Style
+scoreStyle = {typeface = ["Andale Mono", "monospace"]
+             , height = Just 15
+             , color = white
+             , bold = False
+             , italic = False
+             , line = Nothing
+             }
+
 view : (Int, Int) -> State -> El.Element
 view (w, h) st =
     let
@@ -56,6 +65,11 @@ view (w, h) st =
         titleHeight = 30
         titleWidth = bSide * 23
         ttl = title titleWidth titleHeight
+        score = "SCORE: " ++ (toString st.points)
+              |> Txt.fromString
+              |> Txt.style scoreStyle
+              |> Txt.leftAligned
+        scoreTitle = El.flow El.right [ttl, score]
         rowBuilder bxs = El.flow El.left (List.map (\b -> displayBox b bSide) bxs)
         colBuilder rws = El.flow El.down ([ttl] ++ rws)
         pac_pos = Utl.itow (bSide * numCols) (titleHeight + 20 + (bSide * numRows)) st.pacman.pos
@@ -91,8 +105,11 @@ upstate : Action -> State -> State
 upstate a s =
   case a of
     KeyAction k -> {s | pacman <- Ctr.updateDir  k s.pacman}
-    TimeAction  -> {s | pacman <- Ctr.updatePacPos s.pacman
-                   , board <- BCtr.updateBoard s.board s.pacman}
+    TimeAction  ->
+        let (pells, newBoard) =  BCtr.updateBoard s.board s.pacman in
+        {s | pacman <- Ctr.updatePacPos s.pacman
+        , board <- newBoard
+        , points <- s.points + pells}
 
 main : Signal El.Element
 main = view <~ Window.dimensions ~ currState
