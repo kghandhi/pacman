@@ -49,6 +49,14 @@ displayBox b bSide =
       Pill -> Clg.collage bSide bSide [Mod.pill ((toFloat bSide) / 3)]
       Wall -> Clg.collage bSide bSide [Mod.wall (toFloat bSide)]
 
+
+displayLives : Int -> Int -> El.Element
+displayLives lives sz =
+    let
+        life = Clg.collage sz sz [Mod.pacman Mod.Right ((toFloat sz) / 2)]
+    in
+      El.flow El.left (List.map (\_ -> life) [1..lives])
+
 scoreStyle : Txt.Style
 scoreStyle = {typeface = ["Andale Mono", "monospace"]
              , height = Just 45
@@ -70,7 +78,8 @@ view (w, h) st =
               |> Txt.style scoreStyle
               |> Txt.leftAligned
         rowBuilder bxs = El.flow El.left (List.map (\b -> displayBox b bSide) bxs)
-        colBuilder rws = El.flow El.down ([score] ++ rws)
+        scoreLives = El.flow El.right [score, (displayLives st.extraLives 45)]
+        colBuilder rws = El.flow El.down ([scoreLives] ++ rws)
         pac_pos = Utl.itow (bSide * numCols) (titleHeight + 20 + (bSide * numRows)) st.pacman.pos
         pac_dir = case st.pacman.dir of
                     Left -> Mod.Left
@@ -106,12 +115,13 @@ upstate a s =
     KeyAction k -> {s | pacman <- Ctr.updateDir  k s.pacman}
     TimeAction  ->
         let
-            (pells, newBoard) =  BCtr.updateBoard s.board s.pacman
+            (extra_pts, newBoard) =  BCtr.updateBoard s.board s.pacman
             old_pts = s.points
         in
         {s | pacman <- Ctr.updatePacPos s.pacman
         , board <- newBoard
-        , points <- old_pts + pells}
+        , points <- old_pts + extra_pts}
+-- if extra_pts == 50 -> Pill, then update the ghosts.
 
 main : Signal El.Element
 main = view <~ Window.dimensions ~ currState
