@@ -11,6 +11,10 @@ import Window as Win
 -- direction hack to avoid circular dependency
 type ModDir = Left | Right | Up | Down
 
+-- Colors
+pink = rgb 255 186 210
+mistyrose = rgb 238 213 210
+
 background : Float -> Float -> Form
 background w h =
   filled black <| rect w h
@@ -24,7 +28,8 @@ emptySpace r =
     filled black <| square r
 
 gate r =
-    filled white <| square r
+    group [square r |> filled black
+          , rect r (r / 2) |> filled pink]
 
 pacman : ModDir -> Float -> Form
 pacman d r =

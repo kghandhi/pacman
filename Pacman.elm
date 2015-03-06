@@ -57,7 +57,7 @@ type alias Ghost =
       self : Self
     }
 
-type Box = Wall | Pellet | Empty | Fruit | Pill
+type Box = Wall | Gate | Pellet | Empty | Fruit | Pill
 type alias Row = List Box
 type alias Board = List Row
 
@@ -92,11 +92,11 @@ initBoard =
         r10 = List.concat [allWalls 6, [Pellet], allWalls 5, [Empty, Wall]]
         r11 = List.concat [allEmpty 5, [Wall, Pellet], allWalls 5, [Empty, Wall]]
         r12 = List.concat [allEmpty 5, [Wall, Pellet], allWalls 2, allEmpty 5]
-        r13 = List.concat [allEmpty 5, [Wall, Pellet], allWalls 2, [Empty], allWalls 4]
+        r13 = List.concat [allEmpty 5, [Wall, Pellet], allWalls 2, [Empty], allWalls 3, [Gate]]
         r14 = List.concat [allWalls 6, [Pellet], allWalls 2, [Empty, Wall], allEmpty 3]
         r15 = List.concat [allEmpty 6, [Pellet], allEmpty 3, [Wall], allEmpty 3]
         r16 = r14
-        r17 = r13
+        r17 = List.concat [allEmpty 5, [Wall, Pellet], allWalls 2, [Empty], allWalls 4]
         r18 = r12
         r19 = List.concat [allEmpty 5, [Wall, Pellet], allWalls 2, [Empty], allWalls 4]
         r20 =  List.concat [allWalls 6, [Pellet], allWalls 2, [Empty], allWalls 4]

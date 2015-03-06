@@ -23,6 +23,7 @@ import String
 import Keyboard as Key
 
 -- View
+font = ["Andale Mono", "monospace"]
 
 title w h =
     El.container w (h + 20) El.middle
@@ -48,7 +49,7 @@ displayBox b bSide =
       Pellet -> Clg.collage bSide bSide [Mod.pellet ((toFloat bSide) / 6)]
       Pill -> Clg.collage bSide bSide [Mod.pill ((toFloat bSide) / 3)]
       Wall -> Clg.collage bSide bSide [Mod.wall (toFloat bSide)]
-
+      Gate -> Clg.collage bSide bSide [Mod.gate (toFloat bSide)]
 
 displayLives : Int -> Int -> El.Element
 displayLives lives sz =
@@ -58,7 +59,7 @@ displayLives lives sz =
       El.flow El.left (List.map (\_ -> life) [1..lives])
 
 scoreStyle : Txt.Style
-scoreStyle = {typeface = ["Andale Mono", "monospace"]
+scoreStyle = {typeface = font
              , height = Just 45
              , color = white
              , bold = False
