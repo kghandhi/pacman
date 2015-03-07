@@ -50,7 +50,7 @@ type alias Pacman =
     }
 
 -- Chase: kill pacman, Flee: pacman can eat me, Scatter : circle/idle
-type Mode = Chase | Flee | Scatter
+type Mode = Chase | Flee | Scatter | House | Inactive
 -- Flee -> Scared. Dead -> Eye appearance
 type Self = Normal | Scared | Dead
 
@@ -156,17 +156,61 @@ initGhost n d start target =
       seed=(R.initialSeed 13)
     }
 
+initBlinky : Ghost
+initBlinky =
+    { name   = "blinky",
+      pos    = (13, 11),
+      dir    = Right,
+      mode   = Scatter,
+      target = (25, -3),
+      self   = Normal,
+      seed   = R.initSpeed 13
+    }
+
+initInky : Ghost
+initInky =
+    { name   = "inky",
+      pos    = (11, 14),
+      dir    = Left,
+      mode   = Inactive,
+      target = (27, 32),
+      self   = Normal,
+      seed   = R.initSpeed 17
+    }
+
+initPinky : Ghost
+initPinky =
+    { name   = "pinky",
+      pos    = (13, 14),
+      dir    = Left,
+      mode   = House,
+      target = (2, -3),
+      self   = Normal,
+      seed   = R.initSpeed 19
+    }
+
+initClyde : Ghost
+initClyde =
+    { name   = "clyde",
+      pos    = (15, 14),
+      dir    = Left,
+      mode   = Inactive,
+      target = (0, 32),
+      self   = Normal,
+      seed   = R.initSpeed 7
+    }
+
 initState : State
 initState =
-    { points=0,
-      extraLives=2,
-      gameState=Loading,
-      board=initBoard,
-      pacman=initPacman,
-      blinky=(initGhost "blinky" Right (13,11) (0,27)),
-      inky=(initGhost "inky" Left (11,14) (30,27)),
-      pinky=(initGhost "pinky" Up (13,14) (0,0)),
-      clyde=(initGhost "clyde" Up (15,14) (0,30)),
-      numCaught=0,
-      pellsAte=0
+    { points     = 0,
+      extraLives = 2,
+      gameState  = Loading,
+      board      = initBoard,
+      pacman     = initPacman,
+      blinky     = initBlinky,
+      inky       = initInky,
+      pinky      = initPinky,
+      clyde      = initClyde,
+      numCaught  = 0,
+      pellsAte   = 0
     }

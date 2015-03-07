@@ -9,6 +9,33 @@ dist (x1, y1) (x2, y2) = sqrt ((x2-x1)^2 + (y2-y1)^2)
 pfi : (Int, Int) -> Pos
 pfi (x, y) = (toFloat x, toFloat y)
 
+updateScatterMode : Pac.Ghost -> Pac.Ghost
+updateScatterMode g =
+  let
+    delta                  = 0.25
+    (gx, gy)               = g.pos
+    curDirOrBarrier d      =
+      case d of
+        Pac.Left  -> g.dir /= Pac.Right && (not <| isBarrier (gx - delta, gy        ))
+        Pac.Right -> g.dir /= Pac.Left  && (not <| isBarrier (gx + delta, gy        ))
+        Pac.Up    -> g.dir /= Pac.Down  && (not <| isBarrier (gx        , gy - delta))
+        Pac.Down  -> g.dir /= Pac.Up    && (not <| isBarrier (gx        , gy + delta))
+    legal_dirs             = Lst.filter curDirOrBarrier [Pac.Left, Pac.Right, Pac.Up, Pac.Down]
+    distToTarg pos         =
+      dist g.target pos
+    dirs_and_dists         = Lst.map
+                               (\dr ->
+                                  let
+                                    n_pos = updatePos g.pos dr delta
+                                  in
+                                    (dr, n_pos, distToTarg n_pos))
+                               legal_dirs
+    max_dst (dr1, ps1, dst1) (dr2, ps2, dst2) =
+      if | dst1 < dst2 -> (dr1, ps1, dst1)
+         | otherwise   -> (dr2, ps2, dst2)
+    (new_dir, new_pos, _) = Lst.foldl1 max_dst dirs_and_dists
+  in
+    {g | dir <- new_dir, pos <- new_pos}
 
 updateGhosts : State -> State
 updateGhosts st atePill =

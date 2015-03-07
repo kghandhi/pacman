@@ -3,6 +3,7 @@ module Display where
 import Pacman (..)
 import Controls as Ctr
 import BoardControls as BCtr
+import GhostControls as GCtr
 import Models   as Mod
 import Utils    as Utl
 import Time (..)
@@ -146,7 +147,11 @@ upstate a s =
         {s | pacman <- Ctr.updatePacPos s.pacman
         , board <- newBoard
         , points <- old_pts + extra_pts
-        , pellsAte <- if atePell then old_pellsAte + 1 else old_pellsAte}
+        , pellsAte <- if atePell then old_pellsAte + 1 else old_pellsAte
+        , blinky <- GCtr.updateScatterMode s.blinky
+        , inky   <- GCtr.updateScatterMode s.inky
+        , pinky  <- GCtr.updateScatterMode s.pinky
+        , clyde  <- GCtr.updateScatterMode s.clyde}
 -- if extra_pts == 50 -> Pill, then update the ghosts.
 
 main : Signal El.Element
