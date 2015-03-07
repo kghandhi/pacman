@@ -51,7 +51,9 @@ type Mode = Chase | Flee | Scatter
 type Self = Normal | Scared | Dead
 
 type alias Ghost =
-    { pos : Pos,
+    { name : String,
+      pos : Pos,
+      dir : Dir,
       mode : Mode,
       target : Pos,
       self : Self
@@ -124,9 +126,10 @@ initPacman =
       dir=Left
     }
 
-initGhost : Pos -> Pos -> Ghost
-initGhost start target =
-    { pos=start,
+initGhost : String -> Pos -> Pos -> Ghost
+initGhost n start target =
+    { name=n,
+      pos=start,
       mode=Scatter,
       target=target,
       self=Normal
@@ -139,9 +142,9 @@ initState =
       gameState=Loading,
       board=initBoard,
       pacman=initPacman,
-      blinky=(initGhost (0,3) (12,18)),
-      inky=(initGhost (-2.5,0) (14,-17)),
-      pinky=(initGhost (0,0) (-12,18)),
-      clyde=(initGhost (2.5,0) (-14,-17)),
+      blinky=(initGhost "blinky" (13,11) (0,27)),
+      inky=(initGhost "inky" (11,14) (30,27)),
+      pinky=(initGhost "pinky" (13,14) (0,0)),
+      clyde=(initGhost "clyde" (15,14) (0,30)),
       numCaught=0
     }

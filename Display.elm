@@ -58,41 +58,62 @@ displayLives lives sz =
     in
       El.flow El.left (List.map (\_ -> life) [1..lives])
 
+magicNumber = 45
+
 scoreStyle : Txt.Style
 scoreStyle = {typeface = font
-             , height = Just 45
+             , height = Just magicNumber
              , color = white
              , bold = False
              , italic = False
              , line = Nothing
              }
 
+renderGhost g bSide =
+    let
+        h = toFloat bSide
+        w = h
+    in
+      if g.self == Scared then Mod.ghost "scared" w h
+      else Mod.ghost g.name w h
+
 view : (Int, Int) -> State -> El.Element
 view (w, h) st =
     let
-        bSide = (h - 45) // 36
+        bSide = (h - magicNumber) // 36
         titleHeight = 30
         titleWidth = bSide * 23
+
         ttl = title titleWidth titleHeight
+
         score = "SCORE: " ++ (toString st.points)
               |> Txt.fromString
               |> Txt.style scoreStyle
               |> Txt.leftAligned
+        scoreLives = El.flow El.right [score, (displayLives st.extraLives magicNumber)]
+
         rowBuilder bxs = El.flow El.left (List.map (\b -> displayBox b bSide) bxs)
-        scoreLives = El.flow El.right [score, (displayLives st.extraLives 45)]
         colBuilder rws = El.flow El.down ([scoreLives] ++ rws)
+
+        pinky_pos = Utl.itow (bSide * numCols) (titleHeight + 20 + (bSide * numRows)) st.pinky.pos
+        inky_pos = Utl.itow (bSide * numCols) (titleHeight + 20 + (bSide * numRows)) st.inky.pos
+        blinky_pos = Utl.itow (bSide * numCols) (titleHeight + 20 + (bSide * numRows)) st.blinky.pos
+        clyde_pos = Utl.itow (bSide * numCols) (titleHeight + 20 + (bSide * numRows)) st.clyde.pos
         pac_pos = Utl.itow (bSide * numCols) (titleHeight + 20 + (bSide * numRows)) st.pacman.pos
         pac_dir = case st.pacman.dir of
                     Left -> Mod.Left
                     Right -> Mod.Right
                     Up -> Mod.Up
                     Down -> Mod.Down
-
     in
       El.color black
             <| Clg.collage w h
                  [ Clg.toForm <| colBuilder (List.map rowBuilder st.board)
                  , Clg.move pac_pos <| Mod.pacman pac_dir <| toFloat <| bSide // 2
+                 , Clg.move pinky_pos <| renderGhost st.pinky bSide
+                 , Clg.move inky_pos <| renderGhost st.inky bSide
+                 , Clg.move blinky_pos <| renderGhost st.blinky bSide
+                 , Clg.move clyde_pos <| renderGhost st.clyde bSide
                  ]
 
 --Controller
@@ -118,6 +139,7 @@ upstate a s =
         let
             (extra_pts, newBoard) =  BCtr.updateBoard s.board s.pacman
             old_pts = s.points
+            atePill = extra_pts == pillPoint
         in
         {s | pacman <- Ctr.updatePacPos s.pacman
         , board <- newBoard
