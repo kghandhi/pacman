@@ -3,24 +3,25 @@ module GhostControls where
 import Controls (..)
 import Random as R
 import Pacman (..)
+import List as Lst
 
 dist (x1, y1) (x2, y2) = sqrt ((x2-x1)^2 + (y2-y1)^2)
 
 pfi : (Int, Int) -> Pos
 pfi (x, y) = (toFloat x, toFloat y)
 
-updateScatterMode : Pac.Ghost -> Pac.Ghost
+updateScatterMode :  Ghost ->  Ghost
 updateScatterMode g =
   let
     delta                  = 0.25
     (gx, gy)               = g.pos
     curDirOrBarrier d      =
       case d of
-        Pac.Left  -> g.dir /= Pac.Right && (not <| isBarrier (gx - delta, gy        ))
-        Pac.Right -> g.dir /= Pac.Left  && (not <| isBarrier (gx + delta, gy        ))
-        Pac.Up    -> g.dir /= Pac.Down  && (not <| isBarrier (gx        , gy - delta))
-        Pac.Down  -> g.dir /= Pac.Up    && (not <| isBarrier (gx        , gy + delta))
-    legal_dirs             = Lst.filter curDirOrBarrier [Pac.Left, Pac.Right, Pac.Up, Pac.Down]
+        Left  -> g.dir /=  Right && (not <| isBarrier (gx - delta, gy        ))
+        Right -> g.dir /=  Left  && (not <| isBarrier (gx + delta, gy        ))
+        Up    -> g.dir /=  Down  && (not <| isBarrier (gx        , gy - delta))
+        Down  -> g.dir /=  Up    && (not <| isBarrier (gx        , gy + delta))
+    legal_dirs             = Lst.filter curDirOrBarrier [ Left,  Right,  Up,  Down]
     distToTarg pos         =
       dist g.target pos
     dirs_and_dists         = Lst.map
@@ -37,15 +38,43 @@ updateScatterMode g =
   in
     {g | dir <- new_dir, pos <- new_pos}
 
-updateGhosts : State -> State
-updateGhosts st atePill =
-    let
-        b = st.blinky
-        p = st.pinky
-        i = st.inky
-        c = st.clyde
-    in
-      st
+updateGhostPos : Ghost -> Pos -> Ghost
+updateGhostPos g targ =
+  let
+    delta                  = 0.25
+    (gx, gy)               = g.pos
+    curDirOrBarrier d      =
+      case d of
+        Left  -> g.dir /=  Right && (not <| isBarrier (gx - delta, gy        ))
+        Right -> g.dir /=  Left  && (not <| isBarrier (gx + delta, gy        ))
+        Up    -> g.dir /=  Down  && (not <| isBarrier (gx        , gy - delta))
+        Down  -> g.dir /=  Up    && (not <| isBarrier (gx        , gy + delta))
+    legal_dirs             = Lst.filter curDirOrBarrier [Left, Right, Up, Down]
+    distToTarg pos         =
+      dist targ pos
+    dirs_and_dists         = Lst.map
+                               (\dr ->
+                                  let
+                                    n_pos = updatePos g.pos dr delta
+                                  in
+                                    (dr, n_pos, distToTarg n_pos))
+                               legal_dirs
+    max_dst (dr1, ps1, dst1) (dr2, ps2, dst2) =
+      if | dst1 < dst2 -> (dr1, ps1, dst1)
+         | otherwise   -> (dr2, ps2, dst2)
+    (new_dir, new_pos, _) = Lst.foldl1 max_dst dirs_and_dists
+  in
+    {g | dir <- new_dir, pos <- new_pos}
+
+-- updateGhosts : State -> State
+-- updateGhosts st atePill =
+--     let
+--         b = st.blinky
+--         p = st.pinky
+--         i = st.inky
+--         c = st.clyde
+--     in
+--       st
 
 
 blinkyTarget : Ghost -> Pacman -> (Pos, Ghost)
