@@ -15,7 +15,11 @@ ghostPace = 0.25
 
 notHome : Ghost -> Bool
 notHome g =
-    g.mode /= House
+  g.mode /= House
+
+ghostActive : Ghost -> Bool
+ghostActive g =
+  (g.mode == Scatter) || (g.mode == Chase)
 
 updateGhostPos : Ghost -> Pos -> Ghost
 updateGhostPos g targ =
@@ -41,9 +45,13 @@ updateGhostPos g targ =
     max_dst (dr1, ps1, dst1) (dr2, ps2, dst2) =
       if | dst1 < dst2 -> (dr1, ps1, dst1)
          | otherwise   -> (dr2, ps2, dst2)
-    (new_dir, new_pos, _) = Lst.foldl1 max_dst dirs_and_dists
+    (new_dir, (new_x, new_y), _) = Lst.foldl1 max_dst dirs_and_dists
+    new_pos =
+      if | new_x < 0                   -> (toFloat numCols - 1, new_y)
+         | new_x > toFloat numCols - 1 -> (0, new_y)
+         | otherwise                   -> (new_x, new_y)
   in
-    {g | dir <- new_dir, pos <- new_pos}
+    if g.mode == Inactive then g else {g | dir <- new_dir, pos <- new_pos}
 
 swapMode : State -> State
 swapMode st =
@@ -63,7 +71,7 @@ swapMode st =
                     Down  -> Up
               new_pos = updatePos g.pos new_dir ghostPace
           in
-            {g | dir <- new_dir, pos <- new_pos, mode <- new_mode}
+            {g | dir <- new_dir, pos <- new_pos, mode <- if ghostActive g then new_mode else g.mode}
   in
     {st | blinky     <- update st.blinky,
            pinky     <- update st.pinky,
@@ -113,9 +121,10 @@ blinkyTarget g p dMode pells =
               ((rx, ry), new_seed) = R.generate gen g.seed
           in
             (pfi (rx,ry), {g | seed <- new_seed})
-      House -> if (leaveHouse g pells) then ((13, 11), {g | mode <- dMode})
+      Inactive -> if (leaveHouse g pells) then ((13, 11), {g | mode <- House})
                else (initBlinky.pos, g)
-      _ -> (g.target, g)
+      House -> if g.pos == initBlinky.pos then blinkyTarget {g | mode <- dMode} p dMode pells
+               else (initBlinky.pos, g)
 
 pinkyTarget : Ghost -> Pacman -> Mode -> Int -> (Pos, Ghost)
 pinkyTarget g p dMode pells =
@@ -133,9 +142,10 @@ pinkyTarget g p dMode pells =
               ((rx, ry), new_seed) = R.generate gen g.seed
           in
             (pfi (rx,ry), {g | seed <- new_seed})
-      House -> if (leaveHouse g pells) then ((13, 11), {g | mode <- dMode})
+      Inactive -> if (leaveHouse g pells) then ((13, 11), {g | mode <- House})
                else (initPinky.pos, g)
-      _ -> (g.target, g)
+      House -> if g.pos == initBlinky.pos then pinkyTarget {g | mode <- dMode} p dMode pells
+               else (initBlinky.pos, g)
 
 inkyTarget : Ghost -> Ghost -> Pacman -> Mode -> Int -> (Pos, Ghost)
 inkyTarget i b p dMode pells =
@@ -158,9 +168,10 @@ inkyTarget i b p dMode pells =
               ((rx, ry), new_seed) = R.generate gen i.seed
           in
             (pfi (rx,ry), {i | seed <- new_seed})
-      House -> if (leaveHouse i pells) then ((13, 11), {i | mode <- dMode})
+      Inactive -> if (leaveHouse i pells) then ((13, 11), {i | mode <- House})
                else (initInky.pos, i)
-      _ -> (i.target, i)
+      House -> if i.pos == initBlinky.pos then inkyTarget {i | mode <- dMode} b p dMode pells
+               else (initBlinky.pos, i)
 
 clydeTarget : Ghost -> Pacman -> Mode -> Int -> (Pos, Ghost)
 clydeTarget g p dMode pells =
@@ -174,6 +185,7 @@ clydeTarget g p dMode pells =
               ((rx, ry), new_seed) = R.generate gen g.seed
           in
             (pfi (rx, ry), {g | seed <- new_seed})
-      House -> if  (leaveHouse g pells) then ((13, 11), {g | mode <- dMode})
-               else (initInky.pos, g)
-      _ -> (g.target, g)
+      Inactive -> if  (leaveHouse g pells) then ((13, 11), {g | mode <- House})
+                  else (initClyde.pos, g)
+      House -> if g.pos == initBlinky.pos then clydeTarget {g | mode <- dMode} p dMode pells
+               else (initBlinky.pos, g)
