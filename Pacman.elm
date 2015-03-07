@@ -126,10 +126,11 @@ initPacman =
       dir=Left
     }
 
-initGhost : String -> Pos -> Pos -> Ghost
-initGhost n start target =
+initGhost : String -> Dir -> Pos -> Pos -> Ghost
+initGhost n d start target =
     { name=n,
       pos=start,
+      dir=d,
       mode=Scatter,
       target=target,
       self=Normal
@@ -142,9 +143,9 @@ initState =
       gameState=Loading,
       board=initBoard,
       pacman=initPacman,
-      blinky=(initGhost "blinky" (13,11) (0,27)),
-      inky=(initGhost "inky" (11,14) (30,27)),
-      pinky=(initGhost "pinky" (13,14) (0,0)),
-      clyde=(initGhost "clyde" (15,14) (0,30)),
+      blinky=(initGhost "blinky" Right (13,11) (0,27)),
+      inky=(initGhost "inky" Left (11,14) (30,27)),
+      pinky=(initGhost "pinky" Up (13,14) (0,0)),
+      clyde=(initGhost "clyde" Up (15,14) (0,30)),
       numCaught=0
     }
