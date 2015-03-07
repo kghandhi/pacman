@@ -132,26 +132,28 @@ currState =
   Signal.dropRepeats
     <| Signal.foldp upstate initState actions
 
+anyFleeing : State -> Bool
+anyFleeing s =
+  List.member Flee [s.blinky.mode, s.pinky.mode, s.inky.mode, s.clyde.mode] 
+
 upstate : Action -> State -> State
 upstate a s =
   case a of
     KeyAction k -> {s | pacman <- Ctr.updateDir  k s.pacman}
     TimeAction  ->
         let
-            (extra_pts, newBoard) = BCtr.updateBoard s.board s.pacman
-            old_pts = s.points
-            atePill = extra_pts == pillPoint
-            atePell = extra_pts == pelletPoint
-            old_pellsAte = s.pellsAte
+          (extra_pts, newBoard) = BCtr.updateBoard s.board s.pacman
+          old_pts = s.points
+          atePill = extra_pts == pillPoint
+          atePell = extra_pts == pelletPoint
+          old_pellsAte = s.pellsAte
         in
-        {s | pacman <- Ctr.updatePacPos s.pacman
-        , board <- newBoard
-        , points <- old_pts + extra_pts
-        , pellsAte <- if atePell then old_pellsAte + 1 else old_pellsAte
-        , blinky <- GCtr.updateScatterMode s.blinky
-        , inky   <- GCtr.updateScatterMode s.inky
-        , pinky  <- GCtr.updateScatterMode s.pinky
-        , clyde  <- GCtr.updateScatterMode s.clyde}
+          GCtr.updateGhosts
+            {s | pacman   <- Ctr.updatePacPos s.pacman
+               , board    <- newBoard
+               , points   <- old_pts + extra_pts
+               , pellsAte <- if atePell then old_pellsAte + 1 else old_pellsAte
+               , timer    <- if anyFleeing s then s.timer else s.timer + 0.025}
 -- if extra_pts == 50 -> Pill, then update the ghosts.
 
 main : Signal El.Element

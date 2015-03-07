@@ -39,7 +39,9 @@ type alias State =
       pinky : Ghost,
       clyde : Ghost,
       numCaught : Int,
-      pellsAte : Int
+      pellsAte : Int,
+      timer    : Float,
+      modeChanges : List Float
     }
 
 type Dir = Left | Right | Up | Down
@@ -202,15 +204,17 @@ initClyde =
 
 initState : State
 initState =
-    { points     = 0,
-      extraLives = 2,
-      gameState  = Loading,
-      board      = initBoard,
-      pacman     = initPacman,
-      blinky     = initBlinky,
-      inky       = initInky,
-      pinky      = initPinky,
-      clyde      = initClyde,
-      numCaught  = 0,
-      pellsAte   = 0
+    { points      = 0,
+      extraLives  = 2,
+      gameState   = Loading,
+      board       = initBoard,
+      pacman      = initPacman,
+      blinky      = initBlinky,
+      inky        = initInky,
+      pinky       = initPinky,
+      clyde       = initClyde,
+      numCaught   = 0,
+      pellsAte    = 0,
+      timer       = 0,
+      modeChanges = [7, 27, 34, 54, 59, 79, 84]
     }
