@@ -13,6 +13,10 @@ pfi (x, y) = (toFloat x, toFloat y)
 ghostPace : Float
 ghostPace = 0.25
 
+notHome : Ghost -> Bool
+notHome g =
+    g.mode /= House
+
 updateGhostPos : Ghost -> Pos -> Ghost
 updateGhostPos g targ =
   let
@@ -20,10 +24,10 @@ updateGhostPos g targ =
     (gx, gy)               = g.pos
     curDirOrBarrier d      =
       case d of
-        Left  -> g.dir /=  Right && (not <| isBarrier (gx - delta, gy        ))
-        Right -> g.dir /=  Left  && (not <| isBarrier (gx + delta, gy        ))
-        Up    -> g.dir /=  Down  && (not <| isBarrier (gx        , gy - delta))
-        Down  -> g.dir /=  Up    && (not <| isBarrier (gx        , gy + delta))
+        Left  -> g.dir /=  Right && (not <| isBarrier (gx - delta, gy        ) <| notHome g)
+        Right -> g.dir /=  Left  && (not <| isBarrier (gx + delta, gy        ) <| notHome g)
+        Up    -> g.dir /=  Down  && (not <| isBarrier (gx        , gy - delta) <| notHome g)
+        Down  -> g.dir /=  Up    && (not <| isBarrier (gx        , gy + delta) <| notHome g)
     legal_dirs             = Lst.filter curDirOrBarrier [Left, Right, Up, Down]
     distToTarg pos         =
       dist targ pos
@@ -44,28 +48,37 @@ updateGhostPos g targ =
 swapMode : State -> State
 swapMode st =
   let
-    update g =
-      let
-        new_dir =
-          case g.dir of
-            Left  -> Right
-            Right -> Left
-            Up    -> Down
-            Down  -> Up
-        new_pos = updatePos g.pos new_dir ghostPace
-        new_mode =
-          case g.mode of
+      new_mode =
+          case st.defaultMode of
             Scatter -> Chase
-            Chase   -> Scatter
-            _       -> g.mode
-      in
-        {g | dir <- new_dir, pos <- new_pos, mode <- new_mode}
+            Chase -> Scatter
+            _ -> st.defaultMode
+      update g =
+          let
+              new_dir =
+                  case g.dir of
+                    Left  -> Right
+                    Right -> Left
+                    Up    -> Down
+                    Down  -> Up
+              new_pos = updatePos g.pos new_dir ghostPace
+          in
+            {g | dir <- new_dir, pos <- new_pos, mode <- new_mode}
   in
     {st | blinky     <- update st.blinky,
            pinky     <- update st.pinky,
             inky     <- update st.inky,
            clyde     <- update st.clyde,
-         modeChanges <- Lst.tail st.modeChanges}
+           modeChanges <- Lst.tail st.modeChanges,
+         defaultMode <- new_mode}
+
+leaveHouse : Ghost -> Int -> Bool
+leaveHouse g numPells =
+    case g.name of
+      "inky" -> numPells > 30
+      "clyde" -> numPells > 80
+      "pinky" -> True
+      "blinky" -> True
 
 updateGhosts : State -> State
 updateGhosts st =
@@ -77,11 +90,11 @@ updateGhosts st =
           i = st.inky
           c = st.clyde
           pac = st.pacman
-          (bt, bg) = blinkyTarget b pac
-          (pt, pg) = pinkyTarget  p pac
-          (ct, cg) = clydeTarget  c pac
-          (it, ig) = inkyTarget i b pac
-      in 
+          (bt, bg) = blinkyTarget b pac st.defaultMode st.pellsAte
+          (pt, pg) = pinkyTarget  p pac st.defaultMode st.pellsAte
+          (ct, cg) = clydeTarget  c pac st.defaultMode st.pellsAte
+          (it, ig) = inkyTarget i b pac st.defaultMode st.pellsAte
+      in
           {st | blinky <- updateGhostPos bg bt,
                  pinky <- updateGhostPos pg pt,
                   inky <- updateGhostPos ig it,
@@ -89,9 +102,8 @@ updateGhosts st =
     else
       swapMode st
 
-
-blinkyTarget : Ghost -> Pacman -> (Pos, Ghost)
-blinkyTarget g p =
+blinkyTarget : Ghost -> Pacman -> Mode -> Int -> (Pos, Ghost)
+blinkyTarget g p dMode pells =
     case g.mode of
       Scatter -> (g.target, g)
       Chase -> (p.pos, g)
@@ -101,10 +113,12 @@ blinkyTarget g p =
               ((rx, ry), new_seed) = R.generate gen g.seed
           in
             (pfi (rx,ry), {g | seed <- new_seed})
+      House -> if (leaveHouse g pells) then ((13, 11), {g | mode <- dMode})
+               else (initBlinky.pos, g)
       _ -> (g.target, g)
 
-pinkyTarget : Ghost -> Pacman -> (Pos, Ghost)
-pinkyTarget g p =
+pinkyTarget : Ghost -> Pacman -> Mode -> Int -> (Pos, Ghost)
+pinkyTarget g p dMode pells =
     case g.mode of
       Scatter -> (g.target, g)
       Chase -> let (px, py) = p.pos in
@@ -119,10 +133,12 @@ pinkyTarget g p =
               ((rx, ry), new_seed) = R.generate gen g.seed
           in
             (pfi (rx,ry), {g | seed <- new_seed})
+      House -> if (leaveHouse g pells) then ((13, 11), {g | mode <- dMode})
+               else (initPinky.pos, g)
       _ -> (g.target, g)
 
-inkyTarget : Ghost -> Ghost -> Pacman -> (Pos, Ghost)
-inkyTarget i b p =
+inkyTarget : Ghost -> Ghost -> Pacman -> Mode -> Int -> (Pos, Ghost)
+inkyTarget i b p dMode pells =
     case i.mode of
       Scatter -> (i.target, i)
       Chase ->
@@ -142,10 +158,12 @@ inkyTarget i b p =
               ((rx, ry), new_seed) = R.generate gen i.seed
           in
             (pfi (rx,ry), {i | seed <- new_seed})
+      House -> if (leaveHouse i pells) then ((13, 11), {i | mode <- dMode})
+               else (initInky.pos, i)
       _ -> (i.target, i)
 
-clydeTarget : Ghost -> Pacman -> (Pos, Ghost)
-clydeTarget g p =
+clydeTarget : Ghost -> Pacman -> Mode -> Int -> (Pos, Ghost)
+clydeTarget g p dMode pells =
     case g.mode of
       Scatter -> (g.target, g)
       Chase -> if (dist g.pos p.pos) < 8 then (p.pos, g)
@@ -156,4 +174,6 @@ clydeTarget g p =
               ((rx, ry), new_seed) = R.generate gen g.seed
           in
             (pfi (rx, ry), {g | seed <- new_seed})
+      House -> if  (leaveHouse g pells) then ((13, 11), {g | mode <- dMode})
+               else (initInky.pos, g)
       _ -> (g.target, g)

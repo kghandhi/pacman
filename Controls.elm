@@ -10,10 +10,10 @@ wallLocs : Array (Array Pac.Box)
 wallLocs =
   Arr.fromList <| Lst.map Arr.fromList Pac.initBoard
 
-isBarrier : Pac.Pos -> Bool
-isBarrier (x, y) =
+isBarrier : Pac.Pos -> Bool -> Bool
+isBarrier (x, y) careAboutGates =
     let
-      isB = \b -> b == Pac.Wall || b == Pac.Gate
+      isB = \b -> b == Pac.Wall || (b == Pac.Gate && careAboutGates)
       (cxl, cxr) = (clamp 0 (Pac.numCols - 1) <| floor   x,
                           clamp 0 (Pac.numCols - 1) <| ceiling x)
       (cyu, cyd) = (clamp 0 (Pac.numRows - 1) <| floor   y,
@@ -51,7 +51,7 @@ updatePacPos pacman_old =
     (newx, newy) = new_pos
   in
     {pacman_old | pos <-
-                    if  | isBarrier new_pos              -> old_pos
+                    if  | isBarrier new_pos True         -> old_pos
                         | newx > toFloat Pac.numCols - 1 -> (0, newy)
                         | newx < 0                       -> (toFloat Pac.numCols - 1, newy)
                         | otherwise                      -> new_pos}

@@ -41,7 +41,8 @@ type alias State =
       numCaught : Int,
       pellsAte : Int,
       timer    : Float,
-      modeChanges : List Float
+      modeChanges : List Float,
+      defaultMode : Mode
     }
 
 type Dir = Left | Right | Up | Down
@@ -216,5 +217,6 @@ initState =
       numCaught   = 0,
       pellsAte    = 0,
       timer       = 0,
-      modeChanges = [7, 27, 34, 54, 59, 79, 84]
+      modeChanges = [7, 27, 34, 54, 59, 79, 84],
+      defaultMode = Scatter
     }

@@ -143,7 +143,8 @@ initBlinky =
       dir    = Right,
       mode   = Scatter,
       target = (25, -3),
-      self   = Normal
+      self   = Normal,
+      seed   = R.initSpeed 13
     }
 
 initInky : Ghost
@@ -153,7 +154,8 @@ initInky =
       dir    = Left,
       mode   = Inactive,
       target = (27, 32),
-      self   = Normal
+      self   = Normal,
+      seed   = R.initSpeed 17
     }
 
 initPinky : Ghost
@@ -163,7 +165,8 @@ initPinky =
       dir    = Left,
       mode   = House,
       target = (2, -3),
-      self   = Normal
+      self   = Normal,
+      seed   = R.initSpeed 19
     }
 
 initClyde : Ghost
@@ -173,7 +176,8 @@ initClyde =
       dir    = Left,
       mode   = Inactive,
       target = (0, 32),
-      self   = Normal
+      self   = Normal,
+      seed   = R.initSpeed 7
     }
 
 initState : State
