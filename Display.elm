@@ -137,13 +137,16 @@ upstate a s =
     KeyAction k -> {s | pacman <- Ctr.updateDir  k s.pacman}
     TimeAction  ->
         let
-            (extra_pts, newBoard) =  BCtr.updateBoard s.board s.pacman
+            (extra_pts, newBoard) = BCtr.updateBoard s.board s.pacman
             old_pts = s.points
             atePill = extra_pts == pillPoint
+            atePell = extra_pts == pelletPoint
+            old_pellsAte = s.pellsAte
         in
         {s | pacman <- Ctr.updatePacPos s.pacman
         , board <- newBoard
-        , points <- old_pts + extra_pts}
+        , points <- old_pts + extra_pts
+        , pellsAte <- if atePell then old_pellsAte + 1 else old_pellsAte}
 -- if extra_pts == 50 -> Pill, then update the ghosts.
 
 main : Signal El.Element

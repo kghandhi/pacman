@@ -5,6 +5,7 @@ import List ((::))
 import List ((++))
 import List
 import Array as A
+import Random as R
 
 import Color (..)
 import Signal (Signal, (<~), (~))
@@ -25,6 +26,8 @@ pillPoint = 50
 ghostPoints = [200, 400, 800, 1600, 3000]
 cherryPoint = 100
 
+totPells = 240
+
 type alias State =
     { points : Int,
       extraLives : Int,
@@ -35,7 +38,8 @@ type alias State =
       inky : Ghost,
       pinky : Ghost,
       clyde : Ghost,
-      numCaught : Int
+      numCaught : Int,
+      pellsAte : Int
     }
 
 type Dir = Left | Right | Up | Down
@@ -56,7 +60,8 @@ type alias Ghost =
       dir : Dir,
       mode : Mode,
       target : Pos,
-      self : Self
+      self : Self,
+      seed : R.Seed
     }
 
 type Box = Wall | Gate | Pellet | Empty | Fruit | Pill
@@ -119,6 +124,20 @@ initBoard =
     in
       List.map mapper rows
 
+-- 240
+countRow bs =
+    let
+        folder b acc =
+            case b of
+              Pellet -> 1 + acc
+              _ -> acc
+    in
+      List.foldl folder 0 bs
+
+countPellets: List (List Box) -> Int
+countPellets board =
+    List.foldl (\bs acc -> acc + (countRow bs)) 0 board
+
 initPacman : Pacman
 initPacman =
     {
@@ -133,7 +152,8 @@ initGhost n d start target =
       dir=d,
       mode=Scatter,
       target=target,
-      self=Normal
+      self=Normal,
+      seed=(R.initialSeed 13)
     }
 
 initState : State
@@ -147,5 +167,6 @@ initState =
       inky=(initGhost "inky" Left (11,14) (30,27)),
       pinky=(initGhost "pinky" Up (13,14) (0,0)),
       clyde=(initGhost "clyde" Up (15,14) (0,30)),
-      numCaught=0
+      numCaught=0,
+      pellsAte=0
     }
