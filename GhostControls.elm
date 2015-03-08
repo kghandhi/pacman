@@ -53,8 +53,10 @@ updateGhostPos g targ =
   in
     if g.mode == Inactive then g else {g | dir <- new_dir, pos <- new_pos}
 
-swapMode : State -> State
-swapMode st =
+type ScareUpdate = NoChange | MakeScary | MakeScared
+
+swapMode : State -> ScareUpdate -> State
+swapMode st upd =
   let
       new_mode =
           case st.defaultMode of
@@ -71,7 +73,17 @@ swapMode st =
                     Down  -> Up
               new_pos = updatePos g.pos new_dir ghostPace
           in
-            {g | dir <- new_dir, pos <- new_pos, mode <- if ghostActive g then new_mode else g.mode}
+            {g | dir <- new_dir, pos <- new_pos,
+                 mode <- if | not <| ghostActive g -> g.mode
+                            | otherwise            ->
+                                case upd of
+                                  NoChange -> new_mode
+                                  MakeScary -> st.defaultMode
+                                  MakeScared -> Flee,
+                 self <- case upd of
+                           MakeScared -> Scared
+                           MakeScary -> Normal
+                           _ -> g.self}
   in
     {st | blinky     <- update st.blinky,
            pinky     <- update st.pinky,
@@ -88,8 +100,11 @@ leaveHouse g numPells =
       "pinky" -> True
       "blinky" -> True
 
-updateGhosts : State -> State
-updateGhosts st =
+makeFlee g = {g | self <- Scared
+             , mode <- Flee}
+
+updateGhosts : State -> Bool -> State
+updateGhosts st atePill =
     if Lst.isEmpty st.modeChanges || st.timer < Lst.head st.modeChanges
     then
       let

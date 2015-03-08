@@ -26,6 +26,7 @@ pillPoint = 50
 ghostPoints = [200, 400, 800, 1600, 3000]
 cherryPoint = 100
 
+fleeTime = 6
 totPells = 240
 
 type alias State =
@@ -40,7 +41,9 @@ type alias State =
       clyde : Ghost,
       numCaught : Int,
       pellsAte : Int,
+      -- counts game time
       timer    : Float,
+      fleeTimer : Float,
       modeChanges : List Float,
       defaultMode : Mode
     }
@@ -217,6 +220,7 @@ initState =
       numCaught   = 0,
       pellsAte    = 0,
       timer       = 0,
+      fleeTimer   = 0,
       modeChanges = [7, 27, 34, 54, 59, 79, 84],
       defaultMode = Scatter
     }

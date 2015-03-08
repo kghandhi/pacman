@@ -132,9 +132,9 @@ currState =
   Signal.dropRepeats
     <| Signal.foldp upstate initState actions
 
-anyFleeing : State -> Bool
-anyFleeing s =
-  List.member Flee [s.blinky.mode, s.pinky.mode, s.inky.mode, s.clyde.mode] 
+allNormal : State -> Bool
+allNormal s =
+  List.all (\m -> m == Normal) [s.blinky.self, s.pinky.self, s.inky.self, s.clyde.self]
 
 upstate : Action -> State -> State
 upstate a s =
@@ -147,13 +147,17 @@ upstate a s =
           atePill = extra_pts == pillPoint
           atePell = extra_pts == pelletPoint
           old_pellsAte = s.pellsAte
+          stopFlee = anyFleeing s && (s.fleeTimer >= fleeTime)
         in
           GCtr.updateGhosts
-            {s | pacman   <- Ctr.updatePacPos s.pacman
-               , board    <- newBoard
-               , points   <- old_pts + extra_pts
-               , pellsAte <- if atePell then old_pellsAte + 1 else old_pellsAte
-               , timer    <- if anyFleeing s then s.timer else s.timer + 0.025}
+                  {s | pacman   <- Ctr.updatePacPos s.pacman
+                  , board    <- newBoard
+                  , points   <- old_pts + extra_pts
+                  , pellsAte <- if atePell then old_pellsAte + 1 else old_pellsAte
+                  , timer    <- if allNormal s then s.timer else s.timer + 0.025
+                  , fleeTimer <- if | stopFleeing -> 0
+                              | not allNormal -> s.fleeTimer + 0.025
+                              | otherwise -> s.fleeTimer}
 -- if extra_pts == 50 -> Pill, then update the ghosts.
 
 main : Signal El.Element
