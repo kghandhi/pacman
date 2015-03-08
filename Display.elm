@@ -1,12 +1,12 @@
 module Display where
 
 import Pacman (..)
-import Controls as Ctr
+import Controls      as Ctr
 import BoardControls as BCtr
 import GhostControls as GCtr
-import Interactions as Itr
-import Models   as Mod
-import Utils    as Utl
+import Interactions  as Itr
+import PacModels     as Mod
+import Utils         as Utl
 import Time (..)
 
 import List ((::))

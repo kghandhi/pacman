@@ -1,4 +1,4 @@
-module Models where
+module PacModels where
 
 import Graphics.Collage (..)
 import Graphics.Element (Element, size)
@@ -35,12 +35,13 @@ gate r =
 pacman : ModDir -> Float -> Form
 pacman d r =
     let
-        m = r / (sqrt 2) + 1
+        m = r / (sqrt 2)
+        r' = r * 1.03
         tri = case d of
-                Left -> polygon [(0,0), (-r,-m), (-r,m)]
-                Right -> polygon [(0,0), (r,-m), (r,m)]
-                Up  -> polygon [(0,0), (m,r), (-m,r)]
-                Down -> polygon [(0,0), (m,-r), (-m,-r)]
+                Left -> polygon [(0,0), (-r',-m), (-r',m)]
+                Right -> polygon [(0,0), (r',-m), (r',m)]
+                Up  -> polygon [(0,0), (m,r'), (-m,r')]
+                Down -> polygon [(0,0), (m,-r'), (-m,-r')]
     in
       group [filled yellow <| circle r, filled black <| tri]
 
