@@ -29,12 +29,13 @@ interact st =
         numScared = List.length scared
         killPoints = List.sum <| List.take numScared st.ghostPoints
         lifeLoss = not <| List.isEmpty scary
+        livesLeft = if lifeLoss then st.extraLives-1 else st.extraLives
     in
       case (scary, scared) of
         ([], []) -> st
         _ -> {st | points <- st.points + killPoints
-             , extraLives <- if lifeLoss then st.extraLives-1 else st.extraLives
-             , gameState <- Loading
+             , extraLives <- livesLeft
+             , gameState <- if livesLeft < 0 then Over else Loading
              , blinky <- makeEyes st.blinky scared
              , pinky <- makeEyes st.pinky scared
              , inky <- makeEyes st.inky scared

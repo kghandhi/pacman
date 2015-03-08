@@ -73,17 +73,20 @@ swapMode st upd =
                     Down  -> Up
               new_pos = updatePos g.pos new_dir ghostPace
           in
-            {g | dir  <- new_dir, pos <- new_pos,
-                 mode <- if | not <| ghostActive g -> g.mode
-                            | otherwise            ->
-                                case upd of
-                                  NoChange   -> new_mode
-                                  MakeScary  -> st.defaultMode
-                                  MakeScared -> Flee,
-                 self <- case upd of
-                           MakeScared -> Scared
-                           MakeScary  -> Normal
-                           _ -> g.self}
+            case g.self of
+              Dead -> g
+              _    ->
+                {g | dir  <- new_dir, pos <- new_pos,
+                     mode <- if | not <| ghostActive g -> g.mode
+                                | otherwise            ->
+                                    case upd of
+                                      NoChange   -> new_mode
+                                      MakeScary  -> st.defaultMode
+                                      MakeScared -> Flee,
+                     self <- case upd of
+                               MakeScared -> Scared
+                               MakeScary  -> Normal
+                               _ -> g.self}
   in
     {st | blinky       <- update st.blinky,
            pinky       <- update st.pinky,

@@ -41,6 +41,7 @@ type alias State =
       pellsAte : Int,
       -- counts game time
       timer    : Float,
+      startTimer : Float,
       fleeTimer : Float,
       fleeTimerOn : Bool,
       ghostPoints : List Int,
@@ -219,6 +220,7 @@ initState =
       clyde       = initClyde,
       pellsAte    = 0,
       timer       = 0,
+      startTimer  = 3,
       fleeTimer   = 0,
       fleeTimerOn = False,
       ghostPoints = [200, 400, 800, 1600, 3000],

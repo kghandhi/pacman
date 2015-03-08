@@ -141,9 +141,20 @@ allNormal s =
 
 upstate : Action -> State -> State
 upstate a s =
-  case a of
-    KeyAction k -> {s | pacman <- Ctr.updateDir  k s.pacman}
-    TimeAction  ->
+  case (a, s.gameState) of
+    (TimeAction, Loading) ->
+      let
+        newStartTimer = s.startTimer - 0.025
+      in
+        {s | startTimer <- if newStartTimer < 0 then initState.startTimer else newStartTimer, 
+             gameState  <- if newStartTimer < 0 then Active else Loading,
+             pacman     <- initPacman,
+             blinky     <- initBlinky,
+             pinky      <- initPinky,
+             inky       <- initInky,
+             clyde      <- initClyde}
+    (KeyAction k, Active) -> {s | pacman <- Ctr.updateDir  k s.pacman}
+    (TimeAction, Active)  ->
         let
           (extra_pts, newBoard) = BCtr.updateBoard s.board s.pacman
           old_pts = s.points
@@ -165,6 +176,7 @@ upstate a s =
                                       | atePill   -> True
                                       | otherwise -> s.fleeTimerOn
                         , ghostPoints <- if atePill then  ghostPoints else s.ghostPoints} atePill
+    _ -> s --when game is over just don't do anything anymore
 -- if extra_pts == 50 -> Pill, then update the ghosts.
 
 main : Signal El.Element
