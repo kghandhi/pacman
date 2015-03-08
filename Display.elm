@@ -146,7 +146,7 @@ upstate a s =
       let
         newStartTimer = s.startTimer - 0.025
       in
-        {s | startTimer <- if newStartTimer < 0 then initState.startTimer else newStartTimer, 
+        {s | startTimer <- if newStartTimer < 0 then initState.startTimer else newStartTimer,
              gameState  <- if newStartTimer < 0 then Active else Loading,
              pacman     <- initPacman,
              blinky     <- initBlinky,
@@ -176,7 +176,7 @@ upstate a s =
                                       | atePill   -> True
                                       | otherwise -> s.fleeTimerOn
                         , ghostPoints <- if atePill then  ghostPoints else s.ghostPoints} atePill
-    _ -> s --when game is over just don't do anything anymore
+    _ -> s
 -- if extra_pts == 50 -> Pill, then update the ghosts.
 
 main : Signal El.Element
