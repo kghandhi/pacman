@@ -96,6 +96,12 @@ view (w, h) st =
               |> Txt.leftAligned
         scoreLives = El.flow El.right [score, (displayLives st.extraLives magicNumber)]
 
+        gState_pos = Utl.itow (bSide * numCols) (titleHeight + 20 + (bSide * numRows)) (13.5, 17)
+        gState = case st.gameState of
+                   Loading -> El.fittedImage (6 * bSide) bSide "/loading.png"
+                   Over -> El.fittedImage (8 * bSide) bSide "/over.png"
+                   Active -> El.empty
+
         rowBuilder bxs = El.flow El.left (List.map (\b -> displayBox b bSide) bxs)
         colBuilder rws = El.flow El.down ([scoreLives] ++ rws)
 
@@ -118,6 +124,7 @@ view (w, h) st =
                  , Clg.move inky_pos <| renderGhost st.inky bSide
                  , Clg.move blinky_pos <| renderGhost st.blinky bSide
                  , Clg.move clyde_pos <| renderGhost st.clyde bSide
+                 , Clg.move gState_pos <| Clg.toForm gState
                  ]
 
 --Controller

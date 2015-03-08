@@ -49,6 +49,7 @@ ghost : String -> Float -> Float -> Form
 ghost g w h =
     toForm <| El.fittedImage (floor w) (floor h) ("/" ++ g ++ ".png")
 
+
 pellet : Float -> Form
 pellet r =
   filled white <| circle r

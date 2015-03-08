@@ -166,7 +166,7 @@ initGhost n d start target =
 initBlinky : Ghost
 initBlinky =
     { name   = "blinky",
-      pos    = (13, 11),
+      pos    = (13.5, 11),
       dir    = Right,
       mode   = Scatter,
       target = (25, -3),
@@ -177,7 +177,7 @@ initBlinky =
 initInky : Ghost
 initInky =
     { name   = "inky",
-      pos    = (11, 14),
+      pos    = (11.5, 14),
       dir    = Left,
       mode   = Inactive,
       target = (27, 32),
@@ -188,7 +188,7 @@ initInky =
 initPinky : Ghost
 initPinky =
     { name   = "pinky",
-      pos    = (13, 14),
+      pos    = (13.5, 14),
       dir    = Left,
       mode   = House,
       target = (2, -3),
@@ -199,7 +199,7 @@ initPinky =
 initClyde : Ghost
 initClyde =
     { name   = "clyde",
-      pos    = (15, 14),
+      pos    = (15.5, 14),
       dir    = Left,
       mode   = Inactive,
       target = (0, 32),
