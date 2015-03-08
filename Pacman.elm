@@ -44,6 +44,7 @@ type alias State =
       -- counts game time
       timer    : Float,
       fleeTimer : Float,
+      fleeTimerOn : Bool,
       modeChanges : List Float,
       defaultMode : Mode
     }
@@ -221,6 +222,7 @@ initState =
       pellsAte    = 0,
       timer       = 0,
       fleeTimer   = 0,
+      fleeTimerOn = False,
       modeChanges = [7, 27, 34, 54, 59, 79, 84],
       defaultMode = Scatter
     }

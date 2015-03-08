@@ -108,7 +108,7 @@ makeFlee g = {g | self <- Scared
 
 updateGhosts : State -> Bool -> State
 updateGhosts st atePill =
-    if st.fleeTimer == 0 && not atePill && (Lst.isEmpty st.modeChanges || st.timer < Lst.head st.modeChanges)
+    if st.fleeTimer < fleeTime && not atePill && (Lst.isEmpty st.modeChanges || st.timer < Lst.head st.modeChanges)
     then
       let
           b = st.blinky

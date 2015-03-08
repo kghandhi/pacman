@@ -87,7 +87,7 @@ view (w, h) st =
 
         ttl = title titleWidth titleHeight
 
-        score = "SCORE: " ++ (toString st.points)
+        score = "SCORE: " ++ (toString st.fleeTimer)
               |> Txt.fromString
               |> Txt.style scoreStyle
               |> Txt.leftAligned
@@ -155,8 +155,11 @@ upstate a s =
                   , points   <- old_pts + extra_pts
                   , pellsAte <- if atePell then old_pellsAte + 1 else old_pellsAte
                   , timer    <- if s.fleeTimer > 0 then s.timer else s.timer + 0.025
-                  , fleeTimer <- if | stopFlee -> 0
-                                    | otherwise -> s.fleeTimer + 0.025}
+                  , fleeTimer <- if | stopFlee || not s.fleeTimerOn || atePill -> 0
+                                    | otherwise -> s.fleeTimer + 0.025
+                  , fleeTimerOn <- if | stopFlee  -> False
+                                      | atePill   -> True
+                                      | otherwise -> s.fleeTimerOn}
                   atePill
 -- if extra_pts == 50 -> Pill, then update the ghosts.
 
