@@ -147,17 +147,17 @@ upstate a s =
           atePill = extra_pts == pillPoint
           atePell = extra_pts == pelletPoint
           old_pellsAte = s.pellsAte
-          stopFlee = anyFleeing s && (s.fleeTimer >= fleeTime)
+          stopFlee = s.fleeTimer >= fleeTime
         in
           GCtr.updateGhosts
                   {s | pacman   <- Ctr.updatePacPos s.pacman
                   , board    <- newBoard
                   , points   <- old_pts + extra_pts
                   , pellsAte <- if atePell then old_pellsAte + 1 else old_pellsAte
-                  , timer    <- if allNormal s then s.timer else s.timer + 0.025
-                  , fleeTimer <- if | stopFleeing -> 0
-                              | not allNormal -> s.fleeTimer + 0.025
-                              | otherwise -> s.fleeTimer}
+                  , timer    <- if s.fleeTimer > 0 then s.timer else s.timer + 0.025
+                  , fleeTimer <- if | stopFlee -> 0
+                                    | otherwise -> s.fleeTimer + 0.025}
+                  atePill
 -- if extra_pts == 50 -> Pill, then update the ghosts.
 
 main : Signal El.Element

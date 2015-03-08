@@ -73,31 +73,34 @@ swapMode st upd =
                     Down  -> Up
               new_pos = updatePos g.pos new_dir ghostPace
           in
-            {g | dir <- new_dir, pos <- new_pos,
+            {g | dir  <- new_dir, pos <- new_pos,
                  mode <- if | not <| ghostActive g -> g.mode
                             | otherwise            ->
                                 case upd of
-                                  NoChange -> new_mode
-                                  MakeScary -> st.defaultMode
+                                  NoChange   -> new_mode
+                                  MakeScary  -> st.defaultMode
                                   MakeScared -> Flee,
                  self <- case upd of
                            MakeScared -> Scared
-                           MakeScary -> Normal
+                           MakeScary  -> Normal
                            _ -> g.self}
   in
-    {st | blinky     <- update st.blinky,
-           pinky     <- update st.pinky,
-            inky     <- update st.inky,
-           clyde     <- update st.clyde,
-           modeChanges <- Lst.tail st.modeChanges,
-         defaultMode <- new_mode}
+    {st | blinky       <- update st.blinky,
+           pinky       <- update st.pinky,
+            inky       <- update st.inky,
+           clyde       <- update st.clyde,
+           modeChanges <- 
+            case upd of
+              NoChange -> Lst.tail st.modeChanges
+              _        -> st.modeChanges,
+         defaultMode   <- new_mode}
 
 leaveHouse : Ghost -> Int -> Bool
 leaveHouse g numPells =
     case g.name of
-      "inky" -> numPells > 30
-      "clyde" -> numPells > 80
-      "pinky" -> True
+      "inky"   -> numPells > 30
+      "clyde"  -> numPells > 80
+      "pinky"  -> True
       "blinky" -> True
 
 makeFlee g = {g | self <- Scared
@@ -105,7 +108,7 @@ makeFlee g = {g | self <- Scared
 
 updateGhosts : State -> Bool -> State
 updateGhosts st atePill =
-    if Lst.isEmpty st.modeChanges || st.timer < Lst.head st.modeChanges
+    if st.fleeTimer == 0 && not atePill && (Lst.isEmpty st.modeChanges || st.timer < Lst.head st.modeChanges)
     then
       let
           b = st.blinky
@@ -123,7 +126,9 @@ updateGhosts st atePill =
                   inky <- updateGhostPos ig it,
                  clyde <- updateGhostPos cg ct}
     else
-      swapMode st
+      if | st.fleeTimer >= fleeTime -> swapMode st MakeScary
+         | atePill                  -> swapMode st MakeScared
+         | otherwise                -> swapMode st NoChange
 
 blinkyTarget : Ghost -> Pacman -> Mode -> Int -> (Pos, Ghost)
 blinkyTarget g p dMode pells =
