@@ -23,9 +23,8 @@ type alias Pos = (Float, Float)
 -- Model
 pelletPoint = 10
 pillPoint = 50
-ghostPoints = [200, 400, 800, 1600, 3000]
 cherryPoint = 100
-
+ghostPoints = [200, 400, 800, 1600, 3000]
 fleeTime = 6
 totPells = 240
 
@@ -39,12 +38,12 @@ type alias State =
       inky : Ghost,
       pinky : Ghost,
       clyde : Ghost,
-      numCaught : Int,
       pellsAte : Int,
       -- counts game time
       timer    : Float,
       fleeTimer : Float,
       fleeTimerOn : Bool,
+      ghostPoints : List Int,
       modeChanges : List Float,
       defaultMode : Mode
     }
@@ -57,7 +56,7 @@ type alias Pacman =
     }
 
 -- Chase: kill pacman, Flee: pacman can eat me, Scatter : circle/idle
-type Mode = Chase | Flee | Scatter | House | Inactive
+type Mode = Chase | Flee | Scatter | House | Inactive | Center
 -- Flee -> Scared. Dead -> Eye appearance
 type Self = Normal | Scared | Dead
 
@@ -218,11 +217,11 @@ initState =
       inky        = initInky,
       pinky       = initPinky,
       clyde       = initClyde,
-      numCaught   = 0,
       pellsAte    = 0,
       timer       = 0,
       fleeTimer   = 0,
       fleeTimerOn = False,
+      ghostPoints = [200, 400, 800, 1600, 3000],
       modeChanges = [7, 27, 34, 54, 59, 79, 84],
       defaultMode = Scatter
     }

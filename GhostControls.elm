@@ -15,7 +15,7 @@ ghostPace = 0.25
 
 notHome : Ghost -> Bool
 notHome g =
-  g.mode /= House
+  (g.mode /= House) && (g.mode /= Center)
 
 ghostActive : Ghost -> Bool
 ghostActive g =
@@ -89,7 +89,7 @@ swapMode st upd =
            pinky       <- update st.pinky,
             inky       <- update st.inky,
            clyde       <- update st.clyde,
-           modeChanges <- 
+           modeChanges <-
             case upd of
               NoChange -> Lst.tail st.modeChanges
               _        -> st.modeChanges,
@@ -143,8 +143,14 @@ blinkyTarget g p dMode pells =
             (pfi (rx,ry), {g | seed <- new_seed})
       Inactive -> if (leaveHouse g pells) then ((13, 11), {g | mode <- House})
                else (initBlinky.pos, g)
-      House -> if g.pos == initBlinky.pos then blinkyTarget {g | mode <- dMode} p dMode pells
-               else (initBlinky.pos, g)
+      House ->
+          if | g.pos == initBlinky.pos ->
+                 if g.self == Dead then (initPinky.pos, {g | mode <- Center})
+                 else blinkyTarget {g | mode <- dMode} p dMode pells
+             | otherwise -> (initBlinky.pos, g)
+      Center -> if g.pos == initPinky.pos then blinkyTarget {g | mode <- House
+                                                           , self <- Normal} p dMode pells
+                else (initPinky.pos, g)
 
 pinkyTarget : Ghost -> Pacman -> Mode -> Int -> (Pos, Ghost)
 pinkyTarget g p dMode pells =
@@ -164,8 +170,13 @@ pinkyTarget g p dMode pells =
             (pfi (rx,ry), {g | seed <- new_seed})
       Inactive -> if (leaveHouse g pells) then ((13, 11), {g | mode <- House})
                else (initPinky.pos, g)
-      House -> if g.pos == initBlinky.pos then pinkyTarget {g | mode <- dMode} p dMode pells
-               else (initBlinky.pos, g)
+      House -> if | g.pos == initBlinky.pos ->
+                 if g.self == Dead then (initPinky.pos, {g | mode <- Center})
+                 else pinkyTarget {g | mode <- dMode} p dMode pells
+             | otherwise -> (initBlinky.pos, g)
+      Center -> if g.pos == initPinky.pos then pinkyTarget {g | mode <- House
+                                                           , self <- Normal} p dMode pells
+                else (initPinky.pos, g)
 
 inkyTarget : Ghost -> Ghost -> Pacman -> Mode -> Int -> (Pos, Ghost)
 inkyTarget i b p dMode pells =
@@ -190,8 +201,14 @@ inkyTarget i b p dMode pells =
             (pfi (rx,ry), {i | seed <- new_seed})
       Inactive -> if (leaveHouse i pells) then ((13, 11), {i | mode <- House})
                else (initInky.pos, i)
-      House -> if i.pos == initBlinky.pos then inkyTarget {i | mode <- dMode} b p dMode pells
-               else (initBlinky.pos, i)
+      House ->
+          if | i.pos == initBlinky.pos ->
+                 if i.self == Dead then (initPinky.pos, {i | mode <- Center})
+                 else inkyTarget {i | mode <- dMode} b p dMode pells
+             | otherwise -> (initBlinky.pos, i)
+      Center -> if i.pos == initPinky.pos then inkyTarget {i | mode <- House
+                                                          , self <- Normal} b p dMode pells
+                else (initPinky.pos, i)
 
 clydeTarget : Ghost -> Pacman -> Mode -> Int -> (Pos, Ghost)
 clydeTarget g p dMode pells =
@@ -207,5 +224,11 @@ clydeTarget g p dMode pells =
             (pfi (rx, ry), {g | seed <- new_seed})
       Inactive -> if  (leaveHouse g pells) then ((13, 11), {g | mode <- House})
                   else (initClyde.pos, g)
-      House -> if g.pos == initBlinky.pos then clydeTarget {g | mode <- dMode} p dMode pells
-               else (initBlinky.pos, g)
+      House ->
+          if | g.pos == initBlinky.pos ->
+                 if g.self == Dead then (initPinky.pos, {g | mode <- Center})
+                 else clydeTarget {g | mode <- dMode} p dMode pells
+             | otherwise -> (initBlinky.pos, g)
+      Center -> if g.pos == initPinky.pos then clydeTarget {g | mode <- House
+                                                           , self <- Normal} p dMode pells
+                else (initPinky.pos, g)

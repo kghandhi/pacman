@@ -4,6 +4,7 @@ import Pacman (..)
 import Controls as Ctr
 import BoardControls as BCtr
 import GhostControls as GCtr
+import Interactions as Itr
 import Models   as Mod
 import Utils    as Utl
 import Time (..)
@@ -75,8 +76,10 @@ renderGhost g bSide =
         h = toFloat bSide
         w = h
     in
-      if g.self == Scared then Mod.ghost "scared" w h
-      else Mod.ghost g.name w h
+      case g.self of
+        Scared -> Mod.ghost "scared" w h
+        Dead -> Mod.ghost "dead" w h
+        Normal -> Mod.ghost g.name w h
 
 view : (Int, Int) -> State -> El.Element
 view (w, h) st =
@@ -149,18 +152,19 @@ upstate a s =
           old_pellsAte = s.pellsAte
           stopFlee = s.fleeTimer >= fleeTime
         in
-          GCtr.updateGhosts
-                  {s | pacman   <- Ctr.updatePacPos s.pacman
-                  , board    <- newBoard
-                  , points   <- old_pts + extra_pts
-                  , pellsAte <- if atePell then old_pellsAte + 1 else old_pellsAte
-                  , timer    <- if s.fleeTimer > 0 then s.timer else s.timer + 0.025
-                  , fleeTimer <- if | stopFlee || not s.fleeTimerOn || atePill -> 0
+          Itr.interact
+                 <| GCtr.updateGhosts
+                        {s | pacman <- Ctr.updatePacPos s.pacman
+                        , board <- newBoard
+                        , points <- old_pts + extra_pts
+                        , pellsAte <- if atePell then old_pellsAte + 1 else old_pellsAte
+                        , timer <- if s.fleeTimer > 0 then s.timer else s.timer + 0.025
+                        , fleeTimer <- if | stopFlee || not s.fleeTimerOn || atePill -> 0
                                     | otherwise -> s.fleeTimer + 0.025
-                  , fleeTimerOn <- if | stopFlee  -> False
+                        , fleeTimerOn <- if | stopFlee  -> False
                                       | atePill   -> True
-                                      | otherwise -> s.fleeTimerOn}
-                  atePill
+                                      | otherwise -> s.fleeTimerOn
+                        , ghostPoints <- if atePill then  ghostPoints else s.ghostPoints} atePill
 -- if extra_pts == 50 -> Pill, then update the ghosts.
 
 main : Signal El.Element

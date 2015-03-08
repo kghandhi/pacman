@@ -47,7 +47,7 @@ pacman d r =
 -- If the ghost is in scared mode, g = 'scared'
 ghost : String -> Float -> Float -> Form
 ghost g w h =
-    toForm <| El.fittedImage (floor w) (floor h) ("/" ++ g ++ ".jpg")
+    toForm <| El.fittedImage (floor w) (floor h) ("/" ++ g ++ ".png")
 
 pellet : Float -> Form
 pellet r =
