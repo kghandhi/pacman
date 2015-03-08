@@ -87,7 +87,7 @@ view (w, h) st =
 
         ttl = title titleWidth titleHeight
 
-        score = "SCORE: " ++ (toString st.fleeTimer)
+        score = "SCORE: " ++ (toString st.points)
               |> Txt.fromString
               |> Txt.style scoreStyle
               |> Txt.leftAligned
