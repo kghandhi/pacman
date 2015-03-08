@@ -44,6 +44,10 @@ pacman d r =
     in
       group [filled yellow <| circle r, filled black <| tri]
 
+-- pacmanAnimate : ModDir -> Float -> List Form
+-- pacmanAnimate d r =
+
+
 -- If the ghost is in scared mode, g = 'scared'
 ghost : String -> Float -> Float -> Form
 ghost g w h =
