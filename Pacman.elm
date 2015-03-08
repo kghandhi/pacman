@@ -1,6 +1,6 @@
 module Pacman where
 
-import Models as M
+import PacModels as M
 import List ((::))
 import List ((++))
 import List
