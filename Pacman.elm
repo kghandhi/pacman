@@ -75,7 +75,7 @@ type Box = Wall | Gate | Pellet | Empty | Fruit | Pill
 type alias Row = List Box
 type alias Board = List Row
 
-type GameState = Active | Loading | Over
+type GameState = Start | Active | Loading | Over
 
 -- Boards are always w=28, h=31
 numRows = 31
@@ -211,7 +211,7 @@ initState : State
 initState =
     { points      = 0,
       extraLives  = 2,
-      gameState   = Loading,
+      gameState   = Start,
       board       = initBoard,
       pacman      = initPacman,
       blinky      = initBlinky,
