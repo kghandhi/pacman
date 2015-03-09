@@ -90,7 +90,7 @@ startMenu w h st =
     lin_stl' = {lin_stl | width <- 7}
     el_wt = fw * 0.8
     el_ht = fh / 5
-    button_general c str = 
+    button_general c str =
       Clg.collage (round el_wt) (round el_ht)
         [ Clg.filled black <| Clg.rect (0.95 * el_wt)  (0.96 * el_ht)
         , Clg.filled c     <| Clg.rect (0.92  * el_wt)  (0.9  * el_ht)
@@ -115,11 +115,11 @@ startMenu w h st =
       <| Clg.collage w h
            [ Clg.filled   darkBlue      <| Clg.rect fw fh
            , Clg.outlined lin_stl'      <| Clg.rect fw fh
-           , Clg.moveY (fh / 4)    
-              <| Clg.group 
+           , Clg.moveY (fh / 4)
+              <| Clg.group
                    [ Clg.filled yellow  <| Clg.oval (1.05 * el_wt) (1.05 * el_ht)
                    , Clg.filled black   <| Clg.oval el_wt el_ht
-                   , Clg.toForm         <| Txt.centered 
+                   , Clg.toForm         <| Txt.centered
                                         <| Txt.color yellow
                                         <| Txt.height  (fh / 8)
                                         <| Txt.typeface font
@@ -195,8 +195,8 @@ actions =
     , (Signal.sampleOn (fps 40)  <| Signal.constant TimeAction)
     , (Signal.subscribe actionChannel)
     ]
-    
-    
+
+
 
 currState : Signal State
 currState =
@@ -246,8 +246,8 @@ upstate a s =
                            , points      <- old_pts + extra_pts
                            , pellsAte    <- old_pellsAte + (if atePell then 1 else 0)
                            , timer       <- s.timer + (if s.fleeTimer > 0 then 0 else 0.025)
-                           , fleeTimer   <- if | stopFlee 
-                                                   || not s.fleeTimerOn 
+                           , fleeTimer   <- if | stopFlee
+                                                   || not s.fleeTimerOn
                                                    || atePill -> 0
                                                | otherwise    -> s.fleeTimer + 0.025
                            , fleeTimerOn <- if | stopFlee  -> False

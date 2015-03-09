@@ -46,7 +46,7 @@ updatePacPos pacman_old =
   let
     old_pos = pacman_old.pos
     d       = pacman_old.dir
-    delta   = 0.25
+    delta   = 0.5
     new_pos = updatePos old_pos d delta
     (newx, newy) = new_pos
   in

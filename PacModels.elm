@@ -46,31 +46,18 @@ pacman d r =
     in
       group [filled yellow <| circle r, filled black <| tri]
 
-animatePacman : ModDir -> Float -> List Form
-animatePacman d r =
-    let
+makeP c r t = group [filled c <| circle r, t]
 
-        r' = 1.03 * r
-        ts = [r * (sin 45), r * (sin 72), 99, 126, 153]
-        m1 = r * (sin 45)
-        m2 = r * (sin 67.5)
-        rSq = filled black <| polygon [(0,r), (0,-r), (r, -r), (r,r)]
-        tri = [ filled black <| polygon [(0,0), (r', -m1), (r', m1)]
-        , filled black <| polygon [(0,0), (r', -m2), (r', m2)]
-        , rSq
-        , filled black
-                     <| polygon [(-r, m2), (0,r), (r,r), (r,-r), (0,-r), (-r,-m2), (0,0)]
-        , filled black <| polygon [(0,0), (-r,m1), (0,r), (r,r), (r,-r), (0,-r), (-r,-m1)]]
+-- animatePacman : ModDir -> Float -> List Form
+-- animatePacman d r =
+--     let
+--         r' = r * 1.03
 
-        -- tri = case d of
-        --          Right -> [polygon [(0,0), (-r', -m1), (-r', m1)]
-        --                  , polygon  [(0,0), (-r', -m2), (-r', m2)]
-        --                  , polygon [(0,0), (-r', -m3), (-r', m3)]
-        --                  , polygon [(0,0), (r', -m1), (r', m1)]
-        --                  , polygon  [(0,0), (r', -m2), (r', m2)]
-        --                   , polygon [(0,0), (r', -m3), (r', m3)]]
-    in
-      List.map (\t -> group [filled yellow <| circle r, t]) tri
+--         ys = List.map (\b -> r * (sin b)) [45,50,55,60,65,70,75,80,85]
+--         makeTri y = filled black <| polygon [(0,0), (r',y), (r',-y)]
+
+--     in
+--       List.map (makeP yellow r) (List.map makeTri ys)
 
 -- If the ghost is in scared mode, g = 'scared'
 ghost : String -> Float -> Float -> Form
