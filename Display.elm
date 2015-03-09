@@ -112,7 +112,7 @@ menuBackground w h =
     lin_stl  = Clg.solid darkYellow
     lin_stl' = {lin_stl | width <- 7}
   in
-    Clg.group 
+    Clg.group
       [ Clg.filled darkBlue   <| Clg.rect w h
       , Clg.outlined lin_stl' <| Clg.rect w h
       ]
@@ -195,19 +195,18 @@ view (w, h) st =
                              List.head <| List.drop (dyingStates - st.dyingList) self
                     _ -> Mod.pacman pac_dir <| toFloat <| bSide // 2
         ghosts = if st.gameState == Dying then Clg.toForm El.empty
-                 else Clg.group [Clg.move pinky_pos  <| renderGhost st.pinky bSide
-                                , Clg.move inky_pos   <| renderGhost st.inky bSide
+                 else Clg.group [Clg.move pinky_pos <| renderGhost st.pinky bSide
+                                , Clg.move inky_pos <| renderGhost st.inky bSide
                                 , Clg.move blinky_pos <| renderGhost st.blinky bSide
-                                , Clg.move clyde_pos  <| renderGhost st.clyde bSide]
-
+                                , Clg.move clyde_pos <| renderGhost st.clyde bSide]
     in
       El.color black
             <| Clg.collage w h
                  [ Clg.toForm          <| colBuilder (List.map rowBuilder st.board)
-                 , Clg.move pac_pos    <| pacSelf
+                 , Clg.move pac_pos    <| Mod.pacman pac_dir <| toFloat <| bSide // 2
                  , ghosts
                  , Clg.move gState_pos <| Clg.toForm gState
-                 , if  | st.gameState == Start -> startMenu (min w 350) (min h 400) st 
+                 , if  | st.gameState == Start -> startMenu (min w 350) (min h 400) st
                        | st.gameState == Over2 -> overMenu  (min w 350) (min h 400) st
                        | otherwise             -> Clg.toForm El.empty
                  ]
@@ -299,7 +298,6 @@ upstate a s =
          | otherwise        -> {s | overTimer <- s.overTimer - 0.025}
     (ButtonAction Go, _) -> {initState | gameState <- Loading}
     _ -> s
--- if extra_pts == 50 -> Pill, then update the ghosts.
 
 main : Signal El.Element
 main = view <~ Window.dimensions ~ currState

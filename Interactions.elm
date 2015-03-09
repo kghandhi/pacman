@@ -34,23 +34,11 @@ interact st =
       case (scary, scared) of
         ([], []) -> st
         _ -> {st | points  <- st.points + killPoints
-<<<<<<< HEAD
-             , extraLives  <- livesLeft
-             , gameState   <- if | not lifeLoss  -> Active
-                                 | otherwise -> Dying
-             , blinky      <- makeEyes st.blinky scared
-             , pinky       <- makeEyes st.pinky scared
-             , inky        <- makeEyes st.inky scared
-             , clyde       <- makeEyes st.clyde scared
-             , ghostPoints <- List.drop numScared st.ghostPoints}
-=======
                  , extraLives  <- livesLeft
                  , gameState   <- if | not lifeLoss  -> Active
-                                     | livesLeft < 0 -> Over
-                                     | otherwise     -> Loading
+                                 | otherwise -> Dying
                  , blinky      <- makeEyes st.blinky scared
                  , pinky       <- makeEyes st.pinky scared
                  , inky        <- makeEyes st.inky scared
                  , clyde       <- makeEyes st.clyde scared
                  , ghostPoints <- List.drop numScared st.ghostPoints}
->>>>>>> ed62cbcc90d94bff0a700f1e64fd8ee8696f1449

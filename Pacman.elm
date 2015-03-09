@@ -27,7 +27,6 @@ cherryPoint = 100
 ghostPoints = [200, 400, 800, 1600, 3000]
 fleeTime = 6
 totPells = 240
--- For the dying list that keeps track of where in the cycle of dying pacman is
 dyingStates = 9
 
 type alias State =
