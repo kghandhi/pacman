@@ -30,15 +30,20 @@ totPells = 240
 dyingStates = 9
 
 type alias Timers = 
-  { gameTimer   : Float,
-    startTimer  : Float,
-    fleeTimer   : Float,
-    fleeTimerOn : Bool,
-    overTimer   : Float
+  { gameTimer        : Float,
+    startTimer       : Float,
+    fleeTimer        : Float,
+    fleeTimerOn      : Bool,
+    overTimer        : Float,
+    ghostSoundTimer  : Float,
+    pelletSoundTimer : Float
   }
 
 type alias SoundControls =
-  { dying : Bool
+  { dying     : Bool,
+    intro     : Bool,
+    eatGhost  : Bool,
+    eatPellet : Bool
   }
 
 type alias State =
@@ -89,7 +94,7 @@ type alias Row   = List Box
 type alias Board = List Row
 
 --states are start menu, preparing to start game, game active, pacman dying, game over, and game over menu
-type GameState = Start | Loading | Active | Dying | Over | Over2
+type GameState = Start | OptMenu | Loading | Active | Dying | Over | Over2
 
 -- Boards are always w=28, h=31
 numRows = 31
@@ -167,17 +172,6 @@ initPacman =
       dir    = Left
     }
 
---initGhost : String -> Dir -> Pos -> Pos -> Ghost
---initGhost n d start target =
---    { name=n,
---      pos=start,
---      dir=d,
---      mode=Scatter,
---      target=target,
---      self=Normal,
---      seed=(R.initialSeed 13)
---    }
-
 initBlinky : Ghost
 initBlinky =
     { name   = "blinky",
@@ -228,12 +222,21 @@ initClyde =
 
 initTimers : Timers
 initTimers =
-  { gameTimer   = 0,
-    startTimer  = 1.5,
-    fleeTimer   = 0,
-    fleeTimerOn = False,
-    overTimer   = 1.5 
+  { gameTimer        = 0,
+    startTimer       = 4.0,
+    fleeTimer        = 0,
+    fleeTimerOn      = False,
+    overTimer        = 1.5,
+    ghostSoundTimer  = 0,
+    pelletSoundTimer = 0
   }
+
+initSounds : SoundControls
+initSounds =
+  { dying     = False,
+    intro     = False,
+    eatGhost  = False,
+    eatPellet = False}
 
 initState : State
 initState =
@@ -252,5 +255,5 @@ initState =
       modeChanges   = [7, 27, 34, 54, 59, 79, 84],
       defaultMode   = Scatter,
       dyingList     = 9,
-      soundControls = {dying = False}
+      soundControls = initSounds
     }
