@@ -143,8 +143,8 @@ playMenu w h st startStr =
       <| Clg.collage w h
            [ menuBackground fw fh
            , logoBox (fh / 4) el_wt el_ht (fh / 8)
-           , Clg.moveY (-fh / 15)       <| myButton Go startStr  el_wt el_ht
-           , Clg.moveY (-4.3 * fh / 15) <| myButton Go "Options" el_wt el_ht
+           , Clg.moveY (-fh / 15)       <| myButton Go      startStr  el_wt el_ht
+           , Clg.moveY (-4.3 * fh / 15) <| myButton Options "Options" el_wt el_ht
            ]
 
 startMenu : Int -> Int -> State -> Clg.Form
@@ -154,6 +154,21 @@ startMenu w h st =
 overMenu : Int -> Int -> State -> Clg.Form
 overMenu w h st =
   playMenu w h st "Play Again?"
+
+optionsMenu : Int -> Int -> State -> Clg.Form
+optionsMenu w h st =
+  let
+    (fw, fh) = (toFloat w, toFloat h)
+    el_wt = fw * 0.8
+    el_ht = fh / 5
+  in
+    Clg.toForm
+      <| Clg.collage w h
+           [ menuBackground fw fh
+           , logoBox (fh / 4) el_wt el_ht (fh / 8)
+           , Clg.moveY (-fh / 15)       <| myButton Go "Play Game"  el_wt el_ht
+           , Clg.moveY (-4.3 * fh / 15) <| myButton Strt "Go Back"  el_wt el_ht
+           ]
 
 view : (Int, Int) -> State -> El.Element
 view (w, h) st =
@@ -208,14 +223,15 @@ view (w, h) st =
                  , Clg.move pac_pos    <| pacSelf
                  , ghosts
                  , Clg.move gState_pos <| Clg.toForm gState
-                 , if  | st.gameState == Start -> startMenu (min w 350) (min h 400) st
-                       | st.gameState == Over2 -> overMenu  (min w 350) (min h 400) st
-                       | otherwise             -> Clg.toForm El.empty
+                 , if  | st.gameState == Start   -> startMenu   (min w 350) (min h 400) st
+                       | st.gameState == Over2   -> overMenu    (min w 350) (min h 400) st
+                       | st.gameState == OptMenu -> optionsMenu (min w 350) (min h 400) st
+                       | otherwise               -> Clg.toForm El.empty
                  ]
 
 --Controller
 
-type ButtonPressed = Go
+type ButtonPressed = Go | Options | Strt
 type Action = KeyAction Key.KeyCode | TimeAction | ButtonAction ButtonPressed
 
 actionChannel : Signal.Channel Action
@@ -236,11 +252,13 @@ currState : Signal State
 currState =
   let
     zeroedTimers =
-      { gameTimer   = 0,
-        startTimer  = 0,
-        fleeTimer   = 0,
-        fleeTimerOn = False,
-        overTimer   = 0
+      { gameTimer        = 0,
+        startTimer       = 0,
+        fleeTimer        = 0,
+        fleeTimerOn      = False,
+        overTimer        = 0,
+        ghostSoundTimer  = 0,
+        pelletSoundTimer = 0
       }
   in
     Signal.dropRepeats
@@ -274,10 +292,10 @@ upstate a s =
         newSTLess0       = newStartTimer < 0
         tmers            = s.timers
         newTimers        = 
-          {tmers | startTimer <- if | newSTLess0 -> initState.timers.startTimer
+          {tmers | startTimer <- if | newSTLess0 -> initState.timers.startTimer / 2
                                     | otherwise  -> newStartTimer}
         sCs              = s.soundControls
-        newSoundControls = {sCs | dying <- False}
+        newSoundControls = {sCs | dying <- False, intro <- False}
       in
         {s | timers        <- newTimers,
              gameState     <- if newSTLess0 then Active else Loading,
@@ -298,23 +316,38 @@ upstate a s =
         stopFlee     = s.timers.fleeTimer >= fleeTime
         tmers        = s.timers
         newTimers    =
-          {tmers | gameTimer  <- tmers.gameTimer + (if tmers.fleeTimer > 0 then 0 else 0.025)
-                 , fleeTimer  <- if | stopFlee
-                                        || not s.timers.fleeTimerOn
-                                        || atePill -> 0
-                                    | otherwise    -> tmers.fleeTimer + 0.025
-                 , fleeTimerOn <- if | stopFlee  -> False
-                                     | atePill   -> True
-                                     | otherwise -> tmers.fleeTimerOn}
+          {tmers | gameTimer   <- 
+                     tmers.gameTimer + (if tmers.fleeTimer > 0 then 0 else 0.025)
+                 , fleeTimer   <- 
+                     if | stopFlee
+                            || not s.timers.fleeTimerOn
+                            || atePill -> 0
+                        | otherwise    -> tmers.fleeTimer + 0.025
+                 , fleeTimerOn <- 
+                     if | stopFlee  -> False
+                        | atePill   -> True
+                        | otherwise -> tmers.fleeTimerOn
+                 , pelletSoundTimer <- 
+                     if | atePill || atePell -> 0.3
+                        | otherwise          -> tmers.pelletSoundTimer - 0.025}
+        sCs              = s.soundControls
+        newSoundControls = if | atePill || atePell  
+                                  -> {sCs | eatPellet <- True}
+                              | newTimers.pelletSoundTimer <= 0
+                                  -> {sCs | eatPellet <- False}
+                              | otherwise
+                                  -> sCs
       in
         Itr.interact
           <| GCtr.updateGhosts
-               {s | pacman      <- Ctr.updatePacPos s.pacman
-                  , board       <- newBoard
-                  , points      <- old_pts + extra_pts
-                  , pellsAte    <- old_pellsAte + (if atePell then 1 else 0)
-                  , timers      <- newTimers
-                  , ghostPoints <- if atePill then ghostPoints else s.ghostPoints} atePill
+               {s | pacman        <- Ctr.updatePacPos s.pacman
+                  , board         <- newBoard
+                  , points        <- old_pts + extra_pts
+                  , pellsAte      <- old_pellsAte + (if atePell then 1 else 0)
+                  , timers        <- newTimers
+                  , ghostPoints   <- if atePill then ghostPoints else s.ghostPoints
+                  , soundControls <- newSoundControls}
+              atePill
     (TimeAction, Over)   ->
       if | s.timers.overTimer <= 0 -> 
              let
@@ -328,30 +361,91 @@ upstate a s =
                newTimers = {tmers | overTimer <- tmers.overTimer - 0.025}
             in
              {s | timers <- newTimers}
-    (ButtonAction Go, _) -> {initState | gameState <- Loading}
+    (ButtonAction Go, _) ->
+      let
+        sCs = s.soundControls
+        newSoundControls = {sCs | intro <- True}
+      in
+        {initState | gameState <- Loading, soundControls <- newSoundControls}
+    (ButtonAction Options, _) -> {s | gameState <- OptMenu}
+    (ButtonAction Strt, _) -> {s | gameState <- Start}
     _ -> s
 
 {- note from Abe and Kira, much of the audio code below was written using
    https://github.com/jcollard/elm-audio/blob/master/AudioTest.elm
    as a reference -}
 
-propertiesHandler : Aud.Properties -> Maybe Aud.Action
-propertiesHandler props =
+deathPropertiesHandler : Aud.Properties -> Maybe Aud.Action
+deathPropertiesHandler props =
   if props.currentTime > props.duration
   then Just <| Aud.Pause
   else Nothing
 
-handleAudio : State -> Aud.Action
-handleAudio st =
+deathHandleAudio : State -> Aud.Action
+deathHandleAudio st =
   if st.soundControls.dying
   then Aud.Play
   else Aud.Pause
 
-builder : Signal (Aud.Event, Aud.Properties)
-builder = Aud.audio { src = "/PacManDies.wav",
-                      triggers = {defaultTriggers | timeupdate <- True},
-                      propertiesHandler = propertiesHandler,
-                      actions = handleAudio <~ currState}
+deathBuilder : Signal (Aud.Event, Aud.Properties)
+deathBuilder = Aud.audio { src = "/PacManDies.wav",
+                           triggers = {defaultTriggers | timeupdate <- True},
+                           propertiesHandler = deathPropertiesHandler,
+                           actions = deathHandleAudio <~ currState}
+
+introPropertiesHandler : Aud.Properties -> Maybe Aud.Action
+introPropertiesHandler props =
+  if props.currentTime > props.duration
+  then Just <| Aud.Pause
+  else Nothing
+
+introHandleAudio : State -> Aud.Action
+introHandleAudio st =
+  if st.soundControls.intro
+  then Aud.Play
+  else Aud.Pause
+
+introBuilder : Signal (Aud.Event, Aud.Properties)
+introBuilder = Aud.audio { src = "/pacman_beginning.wav",
+                           triggers = {defaultTriggers | timeupdate <- True},
+                           propertiesHandler = introPropertiesHandler,
+                           actions = introHandleAudio <~ currState}
+
+ghostPropertiesHandler : Aud.Properties -> Maybe Aud.Action
+ghostPropertiesHandler props =
+  if props.currentTime > props.duration
+  then Just <| Aud.Pause
+  else Nothing
+
+ghostHandleAudio : State -> Aud.Action
+ghostHandleAudio st =
+  if st.soundControls.eatGhost
+  then Aud.Play
+  else Aud.Pause
+
+ghostBuilder : Signal (Aud.Event, Aud.Properties)
+ghostBuilder = Aud.audio { src = "/pacman_eatghost.wav",
+                           triggers = {defaultTriggers | timeupdate <- True},
+                           propertiesHandler = ghostPropertiesHandler,
+                           actions = ghostHandleAudio <~ currState}
+
+pellPropertiesHandler : Aud.Properties -> Maybe Aud.Action
+pellPropertiesHandler props =
+  if props.currentTime > props.duration
+  then Just <| Aud.Pause
+  else Nothing
+
+pellHandleAudio : State -> Aud.Action
+pellHandleAudio st =
+  if st.soundControls.eatPellet
+  then Aud.Play
+  else Aud.Pause
+
+pellBuilder : Signal (Aud.Event, Aud.Properties)
+pellBuilder = Aud.audio { src = "/pacman_chomp.wav",
+                           triggers = {defaultTriggers | timeupdate <- True},
+                           propertiesHandler = pellPropertiesHandler,
+                           actions = pellHandleAudio <~ currState}
 
 main : Signal El.Element
 main = view <~ Window.dimensions ~ currState
