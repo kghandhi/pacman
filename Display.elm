@@ -82,52 +82,76 @@ renderGhost g bSide =
         Dead   -> Mod.ghost "dead" w h
         Normal -> Mod.ghost g.name w h
 
-startMenu : Int -> Int -> State -> Clg.Form
-startMenu w h st =
+myButton : ButtonPressed -> String -> Float -> Float -> Clg.Form
+myButton msg str w h =
   let
-    (fw, fh) = (toFloat w, toFloat h)
-    lin_stl  = Clg.solid darkYellow
-    lin_stl' = {lin_stl | width <- 7}
-    el_wt = fw * 0.8
-    el_ht = fh / 5
     button_general c str =
-      Clg.collage (round el_wt) (round el_ht)
-        [ Clg.filled black <| Clg.rect (0.95 * el_wt)  (0.96 * el_ht)
-        , Clg.filled c     <| Clg.rect (0.92  * el_wt)  (0.9  * el_ht)
+      Clg.collage (round w) (round h)
+        [ Clg.filled black <| Clg.rect (0.95 * w)  (0.96 * h)
+        , Clg.filled c     <| Clg.rect (0.92 * w)  (0.9  * h)
         , Clg.toForm       <| Txt.centered
                            <| Txt.color black
-                           <| Txt.height (fh / 8)
+                           <| Txt.height (h * 0.45)
                            <| Txt.typeface font
                            <| Txt.fromString str
         ]
     button_up    str = button_general yellow      str
     button_hover str = button_general lightYellow str
     button_down  str = button_general darkYellow  str
-    myButton msg str =
-      Clg.toForm
+  in
+    Clg.toForm
         <| Inp.customButton
             (Signal.send actionChannel (ButtonAction msg))
             (button_up    str)
             (button_hover str)
             (button_down  str)
+
+menuBackground : Float -> Float -> Clg.Form
+menuBackground w h =
+  let
+    lin_stl  = Clg.solid darkYellow
+    lin_stl' = {lin_stl | width <- 7}
+  in
+    Clg.group 
+      [ Clg.filled darkBlue   <| Clg.rect w h
+      , Clg.outlined lin_stl' <| Clg.rect w h
+      ]
+
+logoBox : Float -> Float -> Float -> Float -> Clg.Form
+logoBox logoOffset ovalW ovalH textH =
+  Clg.moveY logoOffset
+    <| Clg.group
+         [ Clg.filled yellow  <| Clg.oval (1.05 * ovalW) (1.05 * ovalH)
+         , Clg.filled black   <| Clg.oval ovalW ovalH
+         , Clg.toForm         <| Txt.centered
+                              <| Txt.color yellow
+                              <| Txt.height  textH
+                              <| Txt.typeface font
+                              <| Txt.fromString "Pac-Man"
+         ]
+
+playMenu : Int -> Int -> State -> String -> Clg.Form
+playMenu w h st startStr =
+  let
+    (fw, fh) = (toFloat w, toFloat h)
+    el_wt = fw * 0.8
+    el_ht = fh / 5
   in
     Clg.toForm
       <| Clg.collage w h
-           [ Clg.filled   darkBlue      <| Clg.rect fw fh
-           , Clg.outlined lin_stl'      <| Clg.rect fw fh
-           , Clg.moveY (fh / 4)
-              <| Clg.group
-                   [ Clg.filled yellow  <| Clg.oval (1.05 * el_wt) (1.05 * el_ht)
-                   , Clg.filled black   <| Clg.oval el_wt el_ht
-                   , Clg.toForm         <| Txt.centered
-                                        <| Txt.color yellow
-                                        <| Txt.height  (fh / 8)
-                                        <| Txt.typeface font
-                                        <| Txt.fromString "Pac-Man"
-                   ]
-           , Clg.moveY (-fh / 15)       <| myButton Go "Start"
-           , Clg.moveY (-4.3 * fh / 15) <| myButton Go "Options"
+           [ menuBackground fw fh
+           , logoBox (fh / 4) el_wt el_ht (fh / 8)
+           , Clg.moveY (-fh / 15)       <| myButton Go startStr  el_wt el_ht
+           , Clg.moveY (-4.3 * fh / 15) <| myButton Go "Options" el_wt el_ht
            ]
+
+startMenu : Int -> Int -> State -> Clg.Form
+startMenu w h st =
+  playMenu w h st "Start"
+
+overMenu : Int -> Int -> State -> Clg.Form
+overMenu w h st =
+  playMenu w h st "Play Again?"
 
 view : (Int, Int) -> State -> El.Element
 view (w, h) st =
@@ -176,7 +200,9 @@ view (w, h) st =
                  , Clg.move blinky_pos <| renderGhost st.blinky bSide
                  , Clg.move clyde_pos  <| renderGhost st.clyde bSide
                  , Clg.move gState_pos <| Clg.toForm gState
-                 , if st.gameState == Start then startMenu (min w 350) (min h 400) st else Clg.toForm El.empty
+                 , if  | st.gameState == Start -> startMenu (min w 350) (min h 400) st 
+                       | st.gameState == Over2 -> overMenu  (min w 350) (min h 400) st
+                       | otherwise             -> Clg.toForm El.empty
                  ]
 
 --Controller
@@ -206,6 +232,7 @@ currState =
                               startTimer  <- 0,
                               fleeTimer   <- 0,
                               fleeTimerOn <- False,
+                              overTimer   <- 0,
                               ghostPoints <- [],
                               modeChanges <- [],
                               defaultMode <- Chase})
@@ -231,30 +258,33 @@ upstate a s =
              clyde      <- initClyde}
     (KeyAction k, Active) -> {s | pacman <- Ctr.updateDir  k s.pacman}
     (TimeAction, Active)  ->
-        let
-          (extra_pts, newBoard) = BCtr.updateBoard s.board s.pacman
-          old_pts = s.points
-          atePill = extra_pts == pillPoint
-          atePell = extra_pts == pelletPoint
-          old_pellsAte = s.pellsAte
-          stopFlee = s.fleeTimer >= fleeTime
-        in
-          Itr.interact
-                 <| GCtr.updateGhosts
-                        {s | pacman      <- Ctr.updatePacPos s.pacman
-                           , board       <- newBoard
-                           , points      <- old_pts + extra_pts
-                           , pellsAte    <- old_pellsAte + (if atePell then 1 else 0)
-                           , timer       <- s.timer + (if s.fleeTimer > 0 then 0 else 0.025)
-                           , fleeTimer   <- if | stopFlee
-                                                   || not s.fleeTimerOn
-                                                   || atePill -> 0
-                                               | otherwise    -> s.fleeTimer + 0.025
-                           , fleeTimerOn <- if | stopFlee  -> False
-                                               | atePill   -> True
-                                               | otherwise -> s.fleeTimerOn
-                           , ghostPoints <- if atePill then ghostPoints else s.ghostPoints} atePill
-    (ButtonAction Go, Start) -> {s | gameState <- Loading}
+      let
+        (extra_pts, newBoard) = BCtr.updateBoard s.board s.pacman
+        old_pts = s.points
+        atePill = extra_pts == pillPoint
+        atePell = extra_pts == pelletPoint
+        old_pellsAte = s.pellsAte
+        stopFlee = s.fleeTimer >= fleeTime
+      in
+        Itr.interact
+          <| GCtr.updateGhosts
+               {s | pacman      <- Ctr.updatePacPos s.pacman
+                  , board       <- newBoard
+                  , points      <- old_pts + extra_pts
+                  , pellsAte    <- old_pellsAte + (if atePell then 1 else 0)
+                  , timer       <- s.timer + (if s.fleeTimer > 0 then 0 else 0.025)
+                  , fleeTimer   <- if | stopFlee
+                                          || not s.fleeTimerOn
+                                          || atePill -> 0
+                                      | otherwise    -> s.fleeTimer + 0.025
+                  , fleeTimerOn <- if | stopFlee  -> False
+                                      | atePill   -> True
+                                      | otherwise -> s.fleeTimerOn
+                  , ghostPoints <- if atePill then ghostPoints else s.ghostPoints} atePill
+    (TimeAction, Over)   ->
+      if | s.overTimer <= 0 -> {s | gameState <- Over2}
+         | otherwise        -> {s | overTimer <- s.overTimer - 0.025}
+    (ButtonAction Go, _) -> {initState | gameState <- Loading}
     _ -> s
 -- if extra_pts == 50 -> Pill, then update the ghosts.
 
