@@ -46,6 +46,7 @@ type alias State =
       startTimer : Float,
       fleeTimer : Float,
       fleeTimerOn : Bool,
+      overTimer : Float,
       ghostPoints : List Int,
       modeChanges : List Float,
       defaultMode : Mode,
@@ -78,7 +79,8 @@ type Box = Wall | Gate | Pellet | Empty | Fruit | Pill
 type alias Row = List Box
 type alias Board = List Row
 
-type GameState = Start | Active | Loading | Over | Dying
+--states are start menu, preparing to start game, game active, pacman dying, game over, and game over menu
+type GameState = Start | Loading | Active | Dying | Over | Over2
 
 -- Boards are always w=28, h=31
 numRows = 31
@@ -223,9 +225,10 @@ initState =
       clyde       = initClyde,
       pellsAte    = 0,
       timer       = 0,
-      startTimer  = 3,
+      startTimer  = 1.5,
       fleeTimer   = 0,
       fleeTimerOn = False,
+      overTimer   = 1.5,
       ghostPoints = [200, 400, 800, 1600, 3000],
       modeChanges = [7, 27, 34, 54, 59, 79, 84],
       defaultMode = Scatter,

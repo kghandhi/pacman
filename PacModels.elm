@@ -129,6 +129,7 @@ key : Float -> Float -> Form
 key w h =
   sz_toForm w h fruit
 
+<<<<<<< HEAD
 upstate : a -> List Form -> List Form
 upstate _ (f::fs) =
   fs ++ [f]
@@ -144,3 +145,20 @@ main =
 view : (Int, Int) -> List Form -> Element
 view (w, h) (f::_) =
   collage w h [background (toFloat w) (toFloat h), f]
+=======
+--upstate : a -> List Form -> List Form
+--upstate _ (f::fs) =
+--  fs ++ [f]
+--
+--main : Signal Element
+--main =
+--  -- Sig.map2 view Win.dimensions (Sig.foldp upstate [(pacman 25),(pellet 10),(pill 25),(cherry 30 40)] (Tm.every Tm.second))
+--
+--    Sig.map2 view Win.dimensions (Sig.foldp upstate
+--                                        (animatePacman Left 50) (Tm.every Tm.second))
+--
+--
+--view : (Int, Int) -> List Form -> Element
+--view (w, h) (f::_) =
+--  collage w h [background (toFloat w) (toFloat h), f]
+>>>>>>> ed62cbcc90d94bff0a700f1e64fd8ee8696f1449
