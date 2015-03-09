@@ -8,6 +8,7 @@ import Signal (Signal)
 import Signal as Sig
 import Time as Tm
 import Window as Win
+import List
 
 -- direction hack to avoid circular dependency
 type ModDir = Left | Right | Up | Down
@@ -44,6 +45,32 @@ pacman d r =
                 Down -> polygon [(0,0), (m,-r'), (-m,-r')]
     in
       group [filled yellow <| circle r, filled black <| tri]
+
+animatePacman : ModDir -> Float -> List Form
+animatePacman d r =
+    let
+
+        r' = 1.03 * r
+        ts = [r * (sin 45), r * (sin 72), 99, 126, 153]
+        m1 = r * (sin 45)
+        m2 = r * (sin 67.5)
+        rSq = filled black <| polygon [(0,r), (0,-r), (r, -r), (r,r)]
+        tri = [ filled black <| polygon [(0,0), (r', -m1), (r', m1)]
+        , filled black <| polygon [(0,0), (r', -m2), (r', m2)]
+        , rSq
+        , filled black
+                     <| polygon [(-r, m2), (0,r), (r,r), (r,-r), (0,-r), (-r,-m2), (0,0)]
+        , filled black <| polygon [(0,0), (-r,m1), (0,r), (r,r), (r,-r), (0,-r), (-r,-m1)]]
+
+        -- tri = case d of
+        --          Right -> [polygon [(0,0), (-r', -m1), (-r', m1)]
+        --                  , polygon  [(0,0), (-r', -m2), (-r', m2)]
+        --                  , polygon [(0,0), (-r', -m3), (-r', m3)]
+        --                  , polygon [(0,0), (r', -m1), (r', m1)]
+        --                  , polygon  [(0,0), (r', -m2), (r', m2)]
+        --                   , polygon [(0,0), (r', -m3), (r', m3)]]
+    in
+      List.map (\t -> group [filled yellow <| circle r, t]) tri
 
 -- If the ghost is in scared mode, g = 'scared'
 ghost : String -> Float -> Float -> Form
@@ -107,10 +134,7 @@ main =
   -- Sig.map2 view Win.dimensions (Sig.foldp upstate [(pacman 25),(pellet 10),(pill 25),(cherry 30 40)] (Tm.every Tm.second))
 
     Sig.map2 view Win.dimensions (Sig.foldp upstate
-                                         [(pacman Left 25),
-                                          (pacman Right 25),
-                                          (pacman Up 25),
-                                          (pacman Down 25)] (Tm.every Tm.second))
+                                        (animatePacman Left 50) (Tm.every Tm.second))
 
 
 view : (Int, Int) -> List Form -> Element
