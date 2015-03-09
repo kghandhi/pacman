@@ -35,8 +35,9 @@ interact st =
         ([], []) -> st
         _ -> {st | points  <- st.points + killPoints
                  , extraLives  <- livesLeft
-                 , gameState   <- if | not lifeLoss  -> Active
-                                 | otherwise -> Dying
+                 , gameState   <-
+                     if | not lifeLoss  -> Active
+                        | otherwise -> Dying
                  , blinky      <- makeEyes st.blinky scared
                  , pinky       <- makeEyes st.pinky scared
                  , inky        <- makeEyes st.inky scared

@@ -203,7 +203,7 @@ view (w, h) st =
       El.color black
             <| Clg.collage w h
                  [ Clg.toForm          <| colBuilder (List.map rowBuilder st.board)
-                 , Clg.move pac_pos    <| Mod.pacman pac_dir <| toFloat <| bSide // 2
+                 , Clg.move pac_pos    <| pacSelf
                  , ghosts
                  , Clg.move gState_pos <| Clg.toForm gState
                  , if  | st.gameState == Start -> startMenu (min w 350) (min h 400) st
