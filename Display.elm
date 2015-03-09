@@ -166,15 +166,22 @@ view (w, h) st =
                        Right -> Mod.Right
                        Up    -> Mod.Up
                        Down  -> Mod.Down
+        pacSelf = case st.gameState of
+                    Dying -> let self = Mod.animatePacman pac_dir (toFloat (bSide // 2)) in
+                             List.head <| List.drop (dyingStates - st.dyingList) self
+                    _ -> Mod.pacman pac_dir <| toFloat <| bSide // 2
+        ghosts = if st.gameState == Dying then Clg.toForm El.empty
+                 else Clg.group [Clg.move pinky_pos  <| renderGhost st.pinky bSide
+                                , Clg.move inky_pos   <| renderGhost st.inky bSide
+                                , Clg.move blinky_pos <| renderGhost st.blinky bSide
+                                , Clg.move clyde_pos  <| renderGhost st.clyde bSide]
+
     in
       El.color black
             <| Clg.collage w h
                  [ Clg.toForm          <| colBuilder (List.map rowBuilder st.board)
-                 , Clg.move pac_pos    <| Mod.pacman pac_dir <| toFloat <| bSide // 2
-                 , Clg.move pinky_pos  <| renderGhost st.pinky bSide
-                 , Clg.move inky_pos   <| renderGhost st.inky bSide
-                 , Clg.move blinky_pos <| renderGhost st.blinky bSide
-                 , Clg.move clyde_pos  <| renderGhost st.clyde bSide
+                 , Clg.move pac_pos    <| pacSelf
+                 , ghosts
                  , Clg.move gState_pos <| Clg.toForm gState
                  , if st.gameState == Start then startMenu (min w 350) (min h 400) st else Clg.toForm El.empty
                  ]
@@ -218,6 +225,12 @@ allNormal s =
 upstate : Action -> State -> State
 upstate a s =
   case (a, s.gameState) of
+    (TimeAction, Dying) -> {s | dyingList <- if s.dyingList == 0 then dyingStates
+                                             else s.dyingList - 1
+                           , gameState <-
+                               if | s.dyingList > 0 -> Dying
+                                  | s.extraLives < 0 -> Over
+                                  | otherwise -> Loading}
     (TimeAction, Loading) ->
       let
         newStartTimer = s.startTimer - 0.025

@@ -27,6 +27,8 @@ cherryPoint = 100
 ghostPoints = [200, 400, 800, 1600, 3000]
 fleeTime = 6
 totPells = 240
+-- For the dying list that keeps track of where in the cycle of dying pacman is
+dyingStates = 9
 
 type alias State =
     { points : Int,
@@ -46,7 +48,8 @@ type alias State =
       fleeTimerOn : Bool,
       ghostPoints : List Int,
       modeChanges : List Float,
-      defaultMode : Mode
+      defaultMode : Mode,
+      dyingList : Int
     }
 
 type Dir = Left | Right | Up | Down
@@ -225,5 +228,6 @@ initState =
       fleeTimerOn = False,
       ghostPoints = [200, 400, 800, 1600, 3000],
       modeChanges = [7, 27, 34, 54, 59, 79, 84],
-      defaultMode = Scatter
+      defaultMode = Scatter,
+      dyingList = 9
     }

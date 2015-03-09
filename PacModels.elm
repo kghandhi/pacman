@@ -48,16 +48,33 @@ pacman d r =
 
 makeP c r t = group [filled c <| circle r, t]
 
--- animatePacman : ModDir -> Float -> List Form
--- animatePacman d r =
---     let
---         r' = r * 1.03
+animatePacman : ModDir -> Float -> List Form
+animatePacman d r =
+    let
+        radsToPts rad = (r * (cos rad), r * (sin rad))
+        ps = List.map radsToPts [pi/4,(5* pi)/16, (6 * pi)/ 16, (7 * pi)/ 16]
 
---         ys = List.map (\b -> r * (sin b)) [45,50,55,60,65,70,75,80,85]
---         makeTri y = filled black <| polygon [(0,0), (r',y), (r',-y)]
+        makeTri (x,y) =
+            group <| List.map (filled black) [polygon [(x,y), (r,r), (r,-r),(x,-y)]
+                                             , polygon [(0,0), (x,y), (x,-y)]]
 
---     in
---       List.map (makeP yellow r) (List.map makeTri ys)
+        makeOther (x,y) =
+            group <| List.map (filled black) [polygon [(0,r),(r,r),(r,-r),(0,-r)]
+                                             , polygon [(0,0),(-x,y),(0,r)]
+                                             , polygon [(0,0), (-x,-y),(0,-r)]
+                                             , polygon [(-x,y), (0,y), (0,r), (-x,r)]
+                                             , polygon [(-x,-y), (0,-y), (0,-r), (-x,-r)]]
+        other = (List.reverse ps) ++ (List.map radsToPts [(3 * pi)/16, (2 *pi)/16, pi/16, pi/32, pi/64])
+        rightCase = List.map (makeP yellow r) ((List.map makeTri ps)
+                                 ++ [filled black <| polygon [(0,r),(r,r),(r,-r),(0,-r)]]
+                                 ++   (List.map makeOther other))
+    in
+      case d of
+        Right -> rightCase
+        Left -> List.map (rotate pi) rightCase
+        Up -> List.map (rotate (pi / 2)) rightCase
+        Down -> List.map (rotate ((3 * pi) / 2)) rightCase
+
 
 -- If the ghost is in scared mode, g = 'scared'
 ghost : String -> Float -> Float -> Form
@@ -121,7 +138,7 @@ main =
   -- Sig.map2 view Win.dimensions (Sig.foldp upstate [(pacman 25),(pellet 10),(pill 25),(cherry 30 40)] (Tm.every Tm.second))
 
     Sig.map2 view Win.dimensions (Sig.foldp upstate
-                                        (animatePacman Left 50) (Tm.every Tm.second))
+                                        (animatePacman Down 50) (Tm.every (Tm.second / 20)))
 
 
 view : (Int, Int) -> List Form -> Element
