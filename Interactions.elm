@@ -42,24 +42,31 @@ interact st =
         killPoints      = List.sum <| List.take numScared st.ghostPoints
         lifeLoss        = not <| List.isEmpty scary
         livesLeft       = if lifeLoss then st.extraLives-1 else st.extraLives
+        tmers = st.timers
+        newTimers =
+           {tmers | ghostSoundTimer <-
+                      if | numScared > 0 -> 0.15
+                         | otherwise     -> tmers.ghostSoundTimer - 0.025}
+        sCs = st.soundControls
+        newSoundControls =
+            {sCs | eatGhost <- newTimers.ghostSoundTimer > 0}
+        st' = {st | timers <- newTimers, soundControls <- newSoundControls}
     in
       case (scary, scared) of
-        ([], []) -> st
-        _ -> {st | points        <- st.points + killPoints
-                 , extraLives    <- livesLeft
-                 , gameState     <-
-                     if | not lifeLoss -> Active
-                        | otherwise    -> Dying
-                 , blinky        <- makeEyes st.blinky scared
-                 , pinky         <- makeEyes st.pinky scared
-                 , inky          <- makeEyes st.inky scared
-                 , clyde         <- makeEyes st.clyde scared
-                 , ghostPoints   <- List.drop numScared st.ghostPoints
-                 , soundControls <-
-                     if | not lifeLoss -> st.soundControls
-                        | otherwise    ->
-                            let
-                                sCs = st.soundControls
-                                newSoundControls = {sCs | dying <- True}
-                            in
-                                newSoundControls}
+        ([], []) -> st'
+        _ -> {st' | points        <- st.points + killPoints
+                  , extraLives    <- livesLeft
+                  , gameState     <-
+                      if | not lifeLoss -> Active
+                         | otherwise    -> Dying
+                  , blinky        <- makeEyes st.blinky scared
+                  , pinky         <- makeEyes st.pinky scared
+                  , inky          <- makeEyes st.inky scared
+                  , clyde         <- makeEyes st.clyde scared
+                  , ghostPoints   <- List.drop numScared st.ghostPoints
+                  , soundControls <-
+                      let
+                          newSoundControls' = 
+                            {newSoundControls | dying <- lifeLoss}
+                      in
+                          newSoundControls'}
