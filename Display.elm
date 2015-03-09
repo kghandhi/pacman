@@ -8,6 +8,8 @@ import Interactions  as Itr
 import PacModels     as Mod
 import Utils         as Utl
 import Time (..)
+import Audio as Aud
+import Audio (defaultTriggers)
 
 import List ((::))
 import List
@@ -178,7 +180,7 @@ view (w, h) st =
         colBuilder rws = El.flow El.down ([scoreLives] ++ rws)
 
         wFromBxs = bSide * numCols
-        hFromBxs = (titleHeight + 20 + (bSide * numRows))
+        hFromBxs = titleHeight + 20 + (bSide * numRows)
 
         pinky_pos  = Utl.itow wFromBxs hFromBxs st.pinky.pos
         inky_pos   = Utl.itow wFromBxs hFromBxs st.inky.pos
@@ -232,17 +234,22 @@ actions =
 
 currState : Signal State
 currState =
-  Signal.dropRepeats
-    <| Signal.map (\s -> {s | pellsAte    <- 0,
-                              timer       <- 0,
-                              startTimer  <- 0,
-                              fleeTimer   <- 0,
-                              fleeTimerOn <- False,
-                              overTimer   <- 0,
-                              ghostPoints <- [],
-                              modeChanges <- [],
-                              defaultMode <- Chase})
-    <| Signal.foldp upstate initState actions
+  let
+    zeroedTimers =
+      { gameTimer   = 0,
+        startTimer  = 0,
+        fleeTimer   = 0,
+        fleeTimerOn = False,
+        overTimer   = 0
+      }
+  in
+    Signal.dropRepeats
+      <| Signal.map (\s -> {s | pellsAte    <- 0,
+                                timers      <- zeroedTimers,
+                                ghostPoints <- [],
+                                modeChanges <- [],
+                                defaultMode <- Chase})
+      <| Signal.foldp upstate initState actions
 
 allNormal : State -> Bool
 allNormal s =
@@ -251,32 +258,57 @@ allNormal s =
 upstate : Action -> State -> State
 upstate a s =
   case (a, s.gameState) of
-    (TimeAction, Dying) -> {s | dyingList <- if s.dyingList == 0 then dyingStates
-                                             else s.dyingList - 1
-                           , gameState <-
-                               if | s.dyingList > 0 -> Dying
-                                  | s.extraLives < 0 -> Over
-                                  | otherwise -> Loading}
+    (TimeAction, Dying) ->
+      let
+        sCs = s.soundControls
+        doneDying = {sCs | dying <- False}
+      in
+        if | s.dyingList  > 0 -> {s | dyingList     <- s.dyingList - 1}
+           | s.extraLives < 0 -> {s | gameState     <- Over,
+                                      soundControls <- doneDying}
+           | otherwise        -> {s | dyingList     <- dyingStates, 
+                                      gameState     <- Loading,
+                                      pacman        <- initPacman,
+                                      blinky        <- initBlinky,
+                                      pinky         <- initPinky,
+                                      inky          <- initInky,
+                                      clyde         <- initClyde,
+                                      soundControls <- doneDying}
     (TimeAction, Loading) ->
       let
-        newStartTimer = s.startTimer - 0.025
+        newStartTimer = s.timers.startTimer - 0.025
+        newSTLess0    = newStartTimer < 0
+        tmers         = s.timers
+        newTimers     = 
+          {tmers | startTimer <- if | newSTLess0 -> initState.timers.startTimer
+                                    | otherwise  -> newStartTimer}
       in
-        {s | startTimer <- if newStartTimer < 0 then initState.startTimer else newStartTimer,
-             gameState  <- if newStartTimer < 0 then Active else Loading,
-             pacman     <- initPacman,
-             blinky     <- initBlinky,
-             pinky      <- initPinky,
-             inky       <- initInky,
-             clyde      <- initClyde}
+        {s | timers    <- newTimers,
+             gameState <- if newSTLess0 then Active else Loading,
+             pacman    <- initPacman,
+             blinky    <- initBlinky,
+             pinky     <- initPinky,
+             inky      <- initInky,
+             clyde     <- initClyde}
     (KeyAction k, Active) -> {s | pacman <- Ctr.updateDir  k s.pacman}
     (TimeAction, Active)  ->
       let
         (extra_pts, newBoard) = BCtr.updateBoard s.board s.pacman
-        old_pts = s.points
-        atePill = extra_pts == pillPoint
-        atePell = extra_pts == pelletPoint
+        old_pts      = s.points
+        atePill      = extra_pts == pillPoint
+        atePell      = extra_pts == pelletPoint
         old_pellsAte = s.pellsAte
-        stopFlee = s.fleeTimer >= fleeTime
+        stopFlee     = s.timers.fleeTimer >= fleeTime
+        tmers        = s.timers
+        newTimers    =
+          {tmers | gameTimer  <- tmers.gameTimer + (if tmers.fleeTimer > 0 then 0 else 0.025)
+                 , fleeTimer  <- if | stopFlee
+                                        || not s.timers.fleeTimerOn
+                                        || atePill -> 0
+                                    | otherwise    -> tmers.fleeTimer + 0.025
+                 , fleeTimerOn <- if | stopFlee  -> False
+                                     | atePill   -> True
+                                     | otherwise -> tmers.fleeTimerOn}
       in
         Itr.interact
           <| GCtr.updateGhosts
@@ -284,20 +316,40 @@ upstate a s =
                   , board       <- newBoard
                   , points      <- old_pts + extra_pts
                   , pellsAte    <- old_pellsAte + (if atePell then 1 else 0)
-                  , timer       <- s.timer + (if s.fleeTimer > 0 then 0 else 0.025)
-                  , fleeTimer   <- if | stopFlee
-                                          || not s.fleeTimerOn
-                                          || atePill -> 0
-                                      | otherwise    -> s.fleeTimer + 0.025
-                  , fleeTimerOn <- if | stopFlee  -> False
-                                      | atePill   -> True
-                                      | otherwise -> s.fleeTimerOn
+                  , timers      <- newTimers
                   , ghostPoints <- if atePill then ghostPoints else s.ghostPoints} atePill
     (TimeAction, Over)   ->
-      if | s.overTimer <= 0 -> {s | gameState <- Over2}
-         | otherwise        -> {s | overTimer <- s.overTimer - 0.025}
+      if | s.timers.overTimer <= 0 -> {s | gameState <- Over2}
+         | otherwise               ->
+             let
+               tmers = s.timers
+               newTimers = {tmers | overTimer <- tmers.overTimer - 0.025}
+            in
+             {s | timers <- newTimers}
     (ButtonAction Go, _) -> {initState | gameState <- Loading}
     _ -> s
+
+{- note from Abe and Kira, much of the audio code below was written using
+   https://github.com/jcollard/elm-audio/blob/master/AudioTest.elm
+   as a reference -}
+
+propertiesHandler : Aud.Properties -> Maybe Aud.Action
+propertiesHandler props =
+  if props.currentTime > props.duration - 0.05
+  then Just <| Aud.Seek 0.05
+  else Nothing
+
+handleAudio : State -> Aud.Action
+handleAudio st =
+  if st.soundControls.dying
+  then Aud.Play
+  else Aud.Pause
+
+builder : Signal (Aud.Event, Aud.Properties)
+builder = Aud.audio { src = "/PacManDies.wav",
+                      triggers = {defaultTriggers | timeupdate <- True},
+                      propertiesHandler = propertiesHandler,
+                      actions = handleAudio <~ currState}
 
 main : Signal El.Element
 main = view <~ Window.dimensions ~ currState

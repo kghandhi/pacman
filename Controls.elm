@@ -51,10 +51,14 @@ updatePacPos pacman_old =
     (newx, newy) = new_pos
   in
     {pacman_old | pos <-
-                    if  | isBarrier new_pos True         -> old_pos
-                        | newx > toFloat Pac.numCols - 1 -> (0, newy)
-                        | newx < 0                       -> (toFloat Pac.numCols - 1, newy)
-                        | otherwise                      -> new_pos}
+                    if | isBarrier new_pos True         -> old_pos
+                       | newx > toFloat Pac.numCols - 1 -> (0, newy)
+                       | newx < 0                       -> (toFloat Pac.numCols - 1, newy)
+                       | otherwise                      -> new_pos
+                , prvPos <-
+                    if | newx > toFloat Pac.numCols - 1 -> (-1, newy)
+                       | newx < 0                       -> (toFloat Pac.numCols, newy)
+                       | otherwise                      -> pacman_old.pos}
 
 --should be used to update dir when most recent key pressed is arrow key
 updateDir : Key.KeyCode -> Pac.Pacman -> Pac.Pacman

@@ -51,7 +51,13 @@ updateGhostPos g targ =
          | new_x > toFloat numCols - 1 -> (0, new_y)
          | otherwise                   -> (new_x, new_y)
   in
-    if g.mode == Inactive then g else {g | dir <- new_dir, pos <- new_pos}
+    if g.mode == Inactive 
+    then g 
+    else {g | dir    <- new_dir, 
+              pos    <- new_pos,
+              prvPos <- if | new_x < 0                   -> (toFloat numCols, new_y)
+                           | new_x > toFloat numCols - 1 -> (-1, new_y)
+                           | otherwise                   -> g.pos}
 
 type ScareUpdate = NoChange | MakeScary | MakeScared
 
@@ -111,7 +117,7 @@ makeFlee g = {g | self <- Scared
 
 updateGhosts : State -> Bool -> State
 updateGhosts st atePill =
-    if st.fleeTimer < fleeTime && not atePill && (Lst.isEmpty st.modeChanges || st.timer < Lst.head st.modeChanges)
+    if st.timers.fleeTimer < fleeTime && not atePill && (Lst.isEmpty st.modeChanges || st.timers.gameTimer < Lst.head st.modeChanges)
     then
       let
           b = st.blinky
@@ -129,7 +135,7 @@ updateGhosts st atePill =
                   inky <- updateGhostPos ig it,
                  clyde <- updateGhostPos cg ct}
     else
-      if | st.fleeTimer >= fleeTime -> swapMode st MakeScary
+      if | st.timers.fleeTimer >= fleeTime -> swapMode st MakeScary
          | atePill                  -> swapMode st MakeScared
          | otherwise                -> swapMode st NoChange
 
