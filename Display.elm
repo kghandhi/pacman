@@ -259,37 +259,34 @@ upstate : Action -> State -> State
 upstate a s =
   case (a, s.gameState) of
     (TimeAction, Dying) ->
-      let
-        sCs = s.soundControls
-        doneDying = {sCs | dying <- False}
-      in
         if | s.dyingList  > 0 -> {s | dyingList     <- s.dyingList - 1}
-           | s.extraLives < 0 -> {s | gameState     <- Over,
-                                      soundControls <- doneDying}
+           | s.extraLives < 0 -> {s | gameState     <- Over}
            | otherwise        -> {s | dyingList     <- dyingStates, 
                                       gameState     <- Loading,
                                       pacman        <- initPacman,
                                       blinky        <- initBlinky,
                                       pinky         <- initPinky,
                                       inky          <- initInky,
-                                      clyde         <- initClyde,
-                                      soundControls <- doneDying}
+                                      clyde         <- initClyde}
     (TimeAction, Loading) ->
       let
-        newStartTimer = s.timers.startTimer - 0.025
-        newSTLess0    = newStartTimer < 0
-        tmers         = s.timers
-        newTimers     = 
+        newStartTimer    = s.timers.startTimer - 0.025
+        newSTLess0       = newStartTimer < 0
+        tmers            = s.timers
+        newTimers        = 
           {tmers | startTimer <- if | newSTLess0 -> initState.timers.startTimer
                                     | otherwise  -> newStartTimer}
+        sCs              = s.soundControls
+        newSoundControls = {sCs | dying <- False}
       in
-        {s | timers    <- newTimers,
-             gameState <- if newSTLess0 then Active else Loading,
-             pacman    <- initPacman,
-             blinky    <- initBlinky,
-             pinky     <- initPinky,
-             inky      <- initInky,
-             clyde     <- initClyde}
+        {s | timers        <- newTimers,
+             gameState     <- if newSTLess0 then Active else Loading,
+             pacman        <- initPacman,
+             blinky        <- initBlinky,
+             pinky         <- initPinky,
+             inky          <- initInky,
+             clyde         <- initClyde,
+             soundControls <- if newSTLess0 then newSoundControls else s.soundControls}
     (KeyAction k, Active) -> {s | pacman <- Ctr.updateDir  k s.pacman}
     (TimeAction, Active)  ->
       let
@@ -319,7 +316,12 @@ upstate a s =
                   , timers      <- newTimers
                   , ghostPoints <- if atePill then ghostPoints else s.ghostPoints} atePill
     (TimeAction, Over)   ->
-      if | s.timers.overTimer <= 0 -> {s | gameState <- Over2}
+      if | s.timers.overTimer <= 0 -> 
+             let
+               sCs = s.soundControls
+               newSoundControls = {sCs | dying <- False}
+             in
+               {s | gameState <- Over2, soundControls <- newSoundControls}
          | otherwise               ->
              let
                tmers = s.timers
@@ -335,8 +337,8 @@ upstate a s =
 
 propertiesHandler : Aud.Properties -> Maybe Aud.Action
 propertiesHandler props =
-  if props.currentTime > props.duration - 0.05
-  then Just <| Aud.Seek 0.05
+  if props.currentTime > props.duration
+  then Just <| Aud.Pause
   else Nothing
 
 handleAudio : State -> Aud.Action
