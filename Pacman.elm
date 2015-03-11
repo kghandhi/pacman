@@ -29,7 +29,7 @@ fleeTime = 6
 totPells = 240
 dyingStates = 9
 
-type alias Timers = 
+type alias Timers =
   { gameTimer        : Float,
     startTimer       : Float,
     fleeTimer        : Float,
@@ -62,7 +62,8 @@ type alias State =
       modeChanges   : List Float,
       defaultMode   : Mode,
       dyingList     : Int,
-      soundControls : SoundControls
+      soundControls : SoundControls,
+      raviMode : Bool
     }
 
 type Dir = Left | Right | Up | Down
@@ -255,5 +256,6 @@ initState =
       modeChanges   = [7, 27, 34, 54, 59, 79, 84],
       defaultMode   = Scatter,
       dyingList     = 9,
-      soundControls = initSounds
+      soundControls = initSounds,
+      raviMode = True
     }

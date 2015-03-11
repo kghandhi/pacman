@@ -35,17 +35,17 @@ title w h =
           <| El.flow El.down
                  [El.image w h "/pacman-logo.jpg", El.spacer w 20]
 
-renderPacman : Pacman -> Int -> El.Element
-renderPacman p bSide =
-    let
-        pman_form =
-            case p.dir of
-              Left  -> Mod.pacman Mod.Left ((toFloat bSide) / 2)
-              Right -> Mod.pacman Mod.Right ((toFloat bSide) / 2)
-              Up    -> Mod.pacman Mod.Up ((toFloat bSide) / 2)
-              Down  -> Mod.pacman Mod.Down ((toFloat bSide) / 2)
-    in
-      Clg.collage bSide bSide [pman_form]
+-- renderPacman : Pacman -> Int -> El.Element
+-- renderPacman p bSide =
+--     let
+--         pman_form =
+--             case p.dir of
+--               Left  -> Mod.pacman Mod.Left ((toFloat bSide) / 2)
+--               Right -> Mod.pacman Mod.Right ((toFloat bSide) / 2)
+--               Up    -> Mod.pacman Mod.Up ((toFloat bSide) / 2)
+--               Down  -> Mod.pacman Mod.Down ((toFloat bSide) / 2)
+--     in
+--       Clg.collage bSide bSide [pman_form]
 
 displayBox : Box -> Int -> El.Element
 displayBox b bSide =
@@ -56,10 +56,10 @@ displayBox b bSide =
       Wall   -> Clg.collage bSide bSide [Mod.wall (toFloat bSide)]
       Gate   -> Clg.collage bSide bSide [Mod.gate (toFloat bSide)]
 
-displayLives : Int -> Int -> El.Element
-displayLives lives sz =
+displayLives : Int -> Int -> Bool -> El.Element
+displayLives lives sz ravi =
     let
-        life = Clg.collage sz sz [Mod.pacman Mod.Right ((toFloat sz) / 2)]
+        life = Clg.collage sz sz [Mod.pacman Mod.Right ((toFloat sz) / 2) ravi]
     in
       El.flow El.left (List.map (\_ -> life) [1..lives])
 
@@ -74,15 +74,15 @@ scoreStyle = {typeface = font
              , line    = Nothing
              }
 
-renderGhost g bSide =
+renderGhost g bSide ravi =
     let
         h = toFloat bSide
         w = h
     in
       case g.self of
-        Scared -> Mod.ghost "scared" w h
-        Dead   -> Mod.ghost "dead" w h
-        Normal -> Mod.ghost g.name w h
+        Scared -> Mod.ghost "scared" w h ravi
+        Dead   -> Mod.ghost "dead" w h ravi
+        Normal -> Mod.ghost g.name w h ravi
 
 myButton : ButtonPressed -> String -> Float -> Float -> Clg.Form
 myButton msg str w h =
@@ -173,6 +173,7 @@ optionsMenu w h st =
 view : (Int, Int) -> State -> El.Element
 view (w, h) st =
     let
+        ravi = st.raviMode
         bSide       = (h - magicNumber) // 36
         titleHeight = 30
         titleWidth  = bSide * 23
@@ -183,7 +184,7 @@ view (w, h) st =
               |> Txt.fromString
               |> Txt.style scoreStyle
               |> Txt.leftAligned
-        scoreLives = El.flow El.right [score, (displayLives st.extraLives magicNumber)]
+        scoreLives = El.flow El.right [score, (displayLives st.extraLives magicNumber ravi)]
 
         gState_pos = Utl.itow (bSide * numCols) (titleHeight + 20 + (bSide * numRows)) (13.5, 17)
         gState = case st.gameState of
@@ -208,14 +209,17 @@ view (w, h) st =
                        Up    -> Mod.Up
                        Down  -> Mod.Down
         pacSelf = case st.gameState of
-                    Dying -> let self = Mod.animatePacman pac_dir (toFloat (bSide // 2)) in
-                             List.head <| List.drop (dyingStates - st.dyingList) self
-                    _ -> Mod.pacman pac_dir <| toFloat <| bSide // 2
+                    Dying ->
+                        let
+                            self = Mod.animatePacman pac_dir (toFloat (bSide // 2)) ravi
+                        in
+                          List.head <| List.drop (dyingStates - st.dyingList) self
+                    _ -> (Mod.pacman pac_dir <| toFloat <| bSide // 2) ravi
         ghosts = if st.gameState == Dying then Clg.toForm El.empty
-                 else Clg.group [Clg.move pinky_pos <| renderGhost st.pinky bSide
-                                , Clg.move inky_pos <| renderGhost st.inky bSide
-                                , Clg.move blinky_pos <| renderGhost st.blinky bSide
-                                , Clg.move clyde_pos <| renderGhost st.clyde bSide]
+                 else Clg.group [Clg.move pinky_pos <| renderGhost st.pinky bSide ravi
+                                , Clg.move inky_pos <| renderGhost st.inky bSide ravi
+                                , Clg.move blinky_pos <| renderGhost st.blinky bSide ravi
+                                , Clg.move clyde_pos <| renderGhost st.clyde bSide ravi]
     in
       El.color black
             <| Clg.collage w h
@@ -279,7 +283,7 @@ upstate a s =
     (TimeAction, Dying) ->
         if | s.dyingList  > 0 -> {s | dyingList     <- s.dyingList - 1}
            | s.extraLives < 0 -> {s | gameState     <- Over}
-           | otherwise        -> {s | dyingList     <- dyingStates, 
+           | otherwise        -> {s | dyingList     <- dyingStates,
                                       gameState     <- Loading,
                                       pacman        <- initPacman,
                                       blinky        <- initBlinky,
@@ -291,7 +295,7 @@ upstate a s =
         newStartTimer    = s.timers.startTimer - 0.025
         newSTLess0       = newStartTimer < 0
         tmers            = s.timers
-        newTimers        = 
+        newTimers        =
           {tmers | startTimer <- if | newSTLess0 -> initState.timers.startTimer / 2
                                     | otherwise  -> newStartTimer}
         sCs              = s.soundControls
@@ -316,22 +320,22 @@ upstate a s =
         stopFlee     = s.timers.fleeTimer >= fleeTime
         tmers        = s.timers
         newTimers    =
-          {tmers | gameTimer   <- 
+          {tmers | gameTimer   <-
                      tmers.gameTimer + (if tmers.fleeTimer > 0 then 0 else 0.025)
-                 , fleeTimer   <- 
+                 , fleeTimer   <-
                      if | stopFlee
                             || not s.timers.fleeTimerOn
                             || atePill -> 0
                         | otherwise    -> tmers.fleeTimer + 0.025
-                 , fleeTimerOn <- 
+                 , fleeTimerOn <-
                      if | stopFlee  -> False
                         | atePill   -> True
                         | otherwise -> tmers.fleeTimerOn
-                 , pelletSoundTimer <- 
+                 , pelletSoundTimer <-
                      if | atePill || atePell -> 0.3
                         | otherwise          -> tmers.pelletSoundTimer - 0.025}
         sCs              = s.soundControls
-        newSoundControls = if | atePill || atePell  
+        newSoundControls = if | atePill || atePell
                                   -> {sCs | eatPellet <- True}
                               | newTimers.pelletSoundTimer <= 0
                                   -> {sCs | eatPellet <- False}
@@ -349,7 +353,7 @@ upstate a s =
                   , soundControls <- newSoundControls}
               atePill
     (TimeAction, Over)   ->
-      if | s.timers.overTimer <= 0 -> 
+      if | s.timers.overTimer <= 0 ->
              let
                sCs = s.soundControls
                newSoundControls = {sCs | dying <- False}

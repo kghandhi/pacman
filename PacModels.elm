@@ -32,8 +32,8 @@ gate r =
     group [square r |> filled black
           , rect r (r / 2) |> filled pink]
 
-pacman : ModDir -> Float -> Form
-pacman d r =
+pacman : ModDir -> Float -> Bool -> Form
+pacman d r ravi =
     let
         m = r / (sqrt 2)
         r' = r * 1.03
@@ -42,13 +42,17 @@ pacman d r =
                 Right -> polygon [(0,0), (r',-m), (r',m)]
                 Up  -> polygon [(0,0), (m,r'), (-m,r')]
                 Down -> polygon [(0,0), (m,-r'), (-m,-r')]
+        s = 2 * (floor r)
     in
-      group [filled yellow <| circle r, filled black <| tri]
+      if ravi then group [toForm <| El.fittedImage s s "/ravi.png"
+                    , filled black <| tri]
+      else group [filled yellow <| circle r, filled black <| tri]
 
 makeP c r t = group [filled c <| circle r, t]
+makeR r t = group [toForm <| El.fittedImage (2* (floor r)) (2 * (floor r)) "/ravi.png", t]
 
-animatePacman : ModDir -> Float -> List Form
-animatePacman d r =
+animatePacman : ModDir -> Float -> Bool -> List Form
+animatePacman d r ravi =
     let
         radsToPts rad = (r * (cos rad), r * (sin rad))
         ps = List.map radsToPts [pi/4,(5* pi)/16, (6 * pi)/ 16, (7 * pi)/ 16]
@@ -64,9 +68,18 @@ animatePacman d r =
                                              , polygon [(-x,y), (0,y), (0,r), (-x,r)]
                                              , polygon [(-x,-y), (0,-y), (0,-r), (-x,-r)]]
         other = (List.reverse ps) ++ (List.map radsToPts [(3 * pi)/16, (2 *pi)/16, pi/16, pi/32, pi/64])
-        rightCase = List.map (makeP yellow r) ((List.map makeTri ps)
-                                 ++ [filled black <| polygon [(0,r),(r,r),(r,-r),(0,-r)]]
-                                 ++   (List.map makeOther other))
+
+        raviCase = List.map (makeR r)
+                   ((List.map makeTri ps)
+                    ++ [filled black <| polygon [(0,r),(r,r),(r,-r),(0,-r)]]
+                           ++   (List.map makeOther other))
+        normalCase =  List.map (makeP yellow r)
+                      ((List.map makeTri ps)
+                       ++ [filled black <| polygon [(0,r),(r,r),(r,-r),(0,-r)]]
+                              ++   (List.map makeOther other))
+        rightCase = if ravi then raviCase
+                    else normalCase
+
     in
       case d of
         Right -> rightCase
@@ -76,9 +89,11 @@ animatePacman d r =
 
 
 -- If the ghost is in scared mode, g = 'scared'
-ghost : String -> Float -> Float -> Form
-ghost g w h =
-    toForm <| El.fittedImage (floor w) (floor h) ("/" ++ g ++ ".png")
+ghost : String -> Float -> Float -> Bool -> Form
+ghost g w h ravi =
+    if | (g /= "scared") && ravi && (g /= "dead") -> toForm <| El.fittedImage (floor w) (floor h) ("/" ++ g ++ "ravi.png")
+       | otherwise ->
+           toForm <| El.fittedImage (floor w) (floor h) ("/" ++ g ++ ".png")
 
 pellet : Float -> Form
 pellet r =
@@ -132,9 +147,9 @@ view : (Int, Int) -> List Form -> Element
 view (w, h) (f::_) =
   collage w h [background (toFloat w) (toFloat h), f]
 
---upstate : a -> List Form -> List Form
-upstate _ (f::fs) =
- fs ++ [f]
-main =
-    Sig.map2 view Win.dimensions (Sig.foldp upstate
-                                         (animatePacman Left 50) (Tm.every (Tm.second / 20)))
+-- --upstate : a -> List Form -> List Form
+-- upstate _ (f::fs) =
+--  fs ++ [f]
+-- main =
+--     Sig.map2 view Win.dimensions (Sig.foldp upstate
+--                                          (animatePacman Left 50) (Tm.every (Tm.second / 20)))
