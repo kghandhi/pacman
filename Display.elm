@@ -284,6 +284,7 @@ currState =
   in
     Signal.dropRepeats
       <| Signal.map (\s -> {s | pellsAte    <- 0,
+                                pillsAte    <- 0,
                                 timers      <- zeroedTimers,
                                 ghostPoints <- [],
                                 modeChanges <- [],
@@ -334,6 +335,10 @@ upstate a s =
         atePill      = extra_pts == pillPoint
         atePell      = extra_pts == pelletPoint
         old_pellsAte = s.pellsAte
+        new_pellsAte = old_pellsAte + (if atePell then 1 else 0)
+        old_pillsAte = s.pillsAte
+        new_pillsAte = old_pillsAte + (if atePill then 1 else 0)
+        level_done   = new_pillsAte + new_pellsAte == totPills + totPells
         stopFlee     = s.timers.fleeTimer >= fleeTime
         tmers        = s.timers
         newTimers    =
@@ -358,17 +363,27 @@ upstate a s =
                                   -> {sCs | eatPellet <- False}
                               | otherwise
                                   -> sCs
+        s' = {s | pacman        <- Ctr.updatePacPos s.pacman newTimers.fleeTimerOn
+                , board         <- newBoard
+                , points        <- old_pts + extra_pts
+                , pellsAte      <- new_pellsAte
+                , pillsAte      <- new_pillsAte
+                , timers        <- newTimers
+                , ghostPoints   <- if atePill then ghostPoints else s.ghostPoints
+                , soundControls <- newSoundControls}
       in
-        Itr.interact
-          <| GCtr.updateGhosts
-               {s | pacman        <- Ctr.updatePacPos s.pacman
-                  , board         <- newBoard
-                  , points        <- old_pts + extra_pts
-                  , pellsAte      <- old_pellsAte + (if atePell then 1 else 0)
-                  , timers        <- newTimers
-                  , ghostPoints   <- if atePill then ghostPoints else s.ghostPoints
-                  , soundControls <- newSoundControls}
-              atePill
+        if level_done
+        then
+          {initState | points     <- s'.points,
+                       extraLives <- s'.extraLives,
+                       gameState  <- Loading,
+                       timers     <- {initTimers | startTimer <- initTimers.startTimer / 2},
+                       raviMode   <- s'.raviMode,
+                       level      <- s'.level + 1}
+        else
+          Itr.interact <| GCtr.updateGhosts s'
+                 
+                atePill
     (TimeAction, Over)   ->
       if | s.timers.overTimer <= 0 ->
              let

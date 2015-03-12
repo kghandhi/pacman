@@ -27,6 +27,7 @@ cherryPoint = 100
 ghostPoints = [200, 400, 800, 1600, 3000]
 fleeTime = 6
 totPells = 240
+totPills = 4
 dyingStates = 9
 
 type alias Timers =
@@ -57,6 +58,7 @@ type alias State =
       pinky         : Ghost,
       clyde         : Ghost,
       pellsAte      : Int,
+      pillsAte      : Int,
       timers        : Timers,
       ghostPoints   : List Int,
       modeChanges   : List Float,
@@ -69,10 +71,17 @@ type alias State =
 
 type Dir = Left | Right | Up | Down
 
+type alias SpdMultis =
+    { norm : Float,
+      scrd : Float
+    }
+
 type alias Pacman =
-    { pos    : Pos,
-      prvPos : Pos,
-      dir    : Dir
+    { pos       : Pos,
+      prvPos    : Pos,
+      dir       : Dir,
+      spdMultis : SpdMultis,
+      difMulti  : Float
     }
 
 -- Chase: kill pacman, Flee: pacman can eat me, Scatter : circle/idle
@@ -81,14 +90,16 @@ type Mode = Chase | Flee | Scatter | House | Inactive | Center
 type Self = Normal | Scared | Dead
 
 type alias Ghost =
-    { name   : String,
-      pos    : Pos,
-      prvPos : Pos,
-      dir    : Dir,
-      mode   : Mode,
-      target : Pos,
-      self   : Self,
-      seed   : R.Seed
+    { name      : String,
+      pos       : Pos,
+      prvPos    : Pos,
+      dir       : Dir,
+      mode      : Mode,
+      target    : Pos,
+      self      : Self,
+      seed      : R.Seed,
+      spdMultis : SpdMultis,
+      difMulti  : Float
     }
 
 type Box         = Wall | Gate | Pellet | Empty | Fruit | Pill
@@ -166,60 +177,78 @@ countPellets: List (List Box) -> Int
 countPellets board =
     List.foldl (\bs acc -> acc + (countRow bs)) 0 board
 
+initPacSpdMultis : SpdMultis
+initPacSpdMultis =
+  {norm = 1, scrd = 1}
+
 initPacman : Pacman
 initPacman =
     {
-      pos    = (13.5, 23),
-      prvPos = (13.5, 23),
-      dir    = Left
+      pos       = (13.5, 23),
+      prvPos    = (13.5, 23),
+      dir       = Left,
+      spdMultis = initPacSpdMultis,
+      difMulti  = 1
     }
+
+initGhostSpdMultis : SpdMultis
+initGhostSpdMultis =
+  {norm = 1, scrd = 0.5}
 
 initBlinky : Ghost
 initBlinky =
-    { name   = "blinky",
-      pos    = (13.5, 11),
-      prvPos = (13.5, 11),
-      dir    = Right,
-      mode   = Scatter,
-      target = (25, -3),
-      self   = Normal,
-      seed   = R.initialSeed 13
+    { name      = "blinky",
+      pos       = (13.5, 11),
+      prvPos    = (13.5, 11),
+      dir       = Right,
+      mode      = Scatter,
+      target    = (25, -3),
+      self      = Normal,
+      seed      = R.initialSeed 13,
+      spdMultis = initGhostSpdMultis,
+      difMulti  = 1
     }
 
 initInky : Ghost
 initInky =
-    { name   = "inky",
-      pos    = (11.5, 14),
-      prvPos = (11.5, 14),
-      dir    = Left,
-      mode   = Inactive,
-      target = (27, 32),
-      self   = Normal,
-      seed   = R.initialSeed 17
+    { name      = "inky",
+      pos       = (11.5, 14),
+      prvPos    = (11.5, 14),
+      dir       = Left,
+      mode      = Inactive,
+      target    = (27, 32),
+      self      = Normal,
+      seed      = R.initialSeed 17,
+      spdMultis = initGhostSpdMultis,
+      difMulti  = 1
     }
 
 initPinky : Ghost
 initPinky =
-    { name   = "pinky",
-      pos    = (13.5, 14),
-      prvPos = (13.5, 14),
-      dir    = Left,
-      mode   = House,
-      target = (2, -3),
-      self   = Normal,
-      seed   = R.initialSeed 19
+    { name      = "pinky",
+      pos       = (13.5, 14),
+      prvPos    = (13.5, 14),
+      dir       = Left,
+      mode      = House,
+      target    = (2, -3),
+      self      = Normal,
+      seed      = R.initialSeed 19,
+      spdMultis = initGhostSpdMultis,
+      difMulti  = 1
     }
 
 initClyde : Ghost
 initClyde =
-    { name   = "clyde",
-      pos    = (15.5, 14),
-      prvPos = (15.5, 14),
-      dir    = Left,
-      mode   = Inactive,
-      target = (0, 32),
-      self   = Normal,
-      seed   = R.initialSeed 7
+    { name      = "clyde",
+      pos       = (15.5, 14),
+      prvPos    = (15.5, 14),
+      dir       = Left,
+      mode      = Inactive,
+      target    = (0, 32),
+      self      = Normal,
+      seed      = R.initialSeed 7,
+      spdMultis = initGhostSpdMultis,
+      difMulti  = 1
     }
 
 initTimers : Timers
@@ -244,7 +273,7 @@ initState : State
 initState =
     { points        = 0,
       extraLives    = 2,
-      gameState     = OptMenu,
+      gameState     = Start,
       board         = initBoard,
       pacman        = initPacman,
       blinky        = initBlinky,
@@ -252,6 +281,7 @@ initState =
       pinky         = initPinky,
       clyde         = initClyde,
       pellsAte      = 0,
+      pillsAte      = 0,
       timers        = initTimers,
       ghostPoints   = [200, 400, 800, 1600, 3000],
       modeChanges   = [7, 27, 34, 54, 59, 79, 84],

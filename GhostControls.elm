@@ -11,7 +11,7 @@ pfi : (Int, Int) -> Pos
 pfi (x, y) = (toFloat x, toFloat y)
 
 ghostPace : Float
-ghostPace = 0.25
+ghostPace = 0.5
 
 notHome : Ghost -> Bool
 notHome g =
@@ -24,7 +24,10 @@ ghostActive g =
 updateGhostPos : Ghost -> Pos -> Ghost
 updateGhostPos g targ =
   let
-    delta                  = ghostPace
+    delta                  = ghostPace * g.difMulti 
+                                       * (if   g.self == Scared 
+                                          then g.spdMultis.scrd 
+                                          else g.spdMultis.norm)
     (gx, gy)               = g.pos
     curDirOrBarrier d      =
       case d of
@@ -35,17 +38,25 @@ updateGhostPos g targ =
     legal_dirs             = Lst.filter curDirOrBarrier [Left, Right, Up, Down]
     distToTarg pos         =
       dist targ pos
-    dirs_and_dists         = Lst.map
-                               (\dr ->
-                                  let
-                                    n_pos = updatePos g.pos dr delta
-                                  in
-                                    (dr, n_pos, distToTarg n_pos))
-                               legal_dirs
-    max_dst (dr1, ps1, dst1) (dr2, ps2, dst2) =
-      if | dst1 < dst2 -> (dr1, ps1, dst1)
-         | otherwise   -> (dr2, ps2, dst2)
-    (new_dir, (new_x, new_y), _) = Lst.foldl1 max_dst dirs_and_dists
+    
+    (new_dir, (new_x, new_y), _) = 
+      case legal_dirs of
+        [] -> (g.dir, snapToWall g.pos g.dir, 0)
+        _  ->
+          let
+            dirs_and_dists = 
+              Lst.map 
+                (\dr ->
+                   let
+                     n_pos = updatePos g.pos dr delta
+                   in
+                     (dr, n_pos, distToTarg n_pos))
+                legal_dirs
+            max_dst (dr1, ps1, dst1) (dr2, ps2, dst2) =
+              if | dst1 < dst2 -> (dr1, ps1, dst1)
+                 | otherwise   -> (dr2, ps2, dst2)
+          in
+            Lst.foldl1 max_dst dirs_and_dists
     new_pos =
       if | new_x < 0                   -> (toFloat numCols - 1, new_y)
          | new_x > toFloat numCols - 1 -> (0, new_y)

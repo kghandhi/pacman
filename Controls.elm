@@ -33,6 +33,14 @@ pos_add : Pac.Pos -> Pac.Pos -> Pac.Pos
 pos_add (x, y) (x', y') =
   (x + x', y + y')
 
+snapToWall : Pac.Pos -> Pac.Dir -> Pac.Pos
+snapToWall (x, y) d =
+  case d of
+    Pac.Left  -> (toFloat <| floor x, y)
+    Pac.Right -> (toFloat <| ceiling x, y)
+    Pac.Up    -> (x, toFloat <| floor y)
+    Pac.Down  -> (x, toFloat <| ceiling y)
+
 updatePos : Pac.Pos -> Pac.Dir -> Float -> Pac.Pos
 updatePos pos d delta =
   case d of
@@ -41,17 +49,20 @@ updatePos pos d delta =
     Pac.Up    -> pos_add pos ( 0.0, -delta)
     Pac.Down  -> pos_add pos ( 0.0,  delta)
 
-updatePacPos : Pac.Pacman -> Pac.Pacman
-updatePacPos pacman_old =
+updatePacPos : Pac.Pacman -> Bool -> Pac.Pacman
+updatePacPos pacman_old ghosts_frightened =
   let
     old_pos = pacman_old.pos
     d       = pacman_old.dir
-    delta   = 0.5
+    delta   = 0.5 * pacman_old.difMulti 
+                  * (if   ghosts_frightened
+                     then pacman_old.spdMultis.scrd
+                     else pacman_old.spdMultis.norm)
     new_pos = updatePos old_pos d delta
     (newx, newy) = new_pos
   in
     {pacman_old | pos <-
-                    if | isBarrier new_pos True         -> old_pos
+                    if | isBarrier new_pos True         -> snapToWall pacman_old.pos pacman_old.dir
                        | newx > toFloat Pac.numCols - 1 -> (0, newy)
                        | newx < 0                       -> (toFloat Pac.numCols - 1, newy)
                        | otherwise                      -> new_pos
