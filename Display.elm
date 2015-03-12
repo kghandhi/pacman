@@ -93,7 +93,7 @@ myButton msg str w h =
         , Clg.filled c     <| Clg.rect (0.92 * w)  (0.9  * h)
         , Clg.toForm       <| Txt.centered
                            <| Txt.color black
-                           <| Txt.height (w * 0.15)
+                           <| Txt.height (w * 0.13)
                            <| Txt.typeface font
                            <| Txt.fromString str
         ]
@@ -171,13 +171,13 @@ optionsMenu w h st =
            , Clg.move (( 0.9 * fw / 4), (-5.85 * fh / 15)) <|
               myButton Strt "Go Back"  (el_wt / 2) (2 * el_ht / 3)
            , Clg.move (-0.74 * fw / 4, (fh / 18))
-                    <| Clg.toForm 
+                    <| Clg.toForm
                     <| Txt.centered
                     <| Txt.color yellow
                     <| Txt.height (fw * 0.08)
                     <| Txt.typeface font
                     <| Txt.fromString "Mode"
-            , Clg.move ((0.74 * fw / 4), (fh / 18)) 
+            , Clg.move ((0.74 * fw / 4), (fh / 18))
                     <| Clg.toForm
                     <| El.width (w // 3)
                     <| Inp.dropDown (\b -> Signal.send actionChannel <| ButtonAction <| PicMode b)
@@ -382,7 +382,7 @@ upstate a s =
                        level      <- s'.level + 1}
         else
           Itr.interact <| GCtr.updateGhosts s'
-                 
+
                 atePill
     (TimeAction, Over)   ->
       if | s.timers.overTimer <= 0 ->
