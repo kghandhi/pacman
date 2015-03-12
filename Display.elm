@@ -93,7 +93,7 @@ myButton msg str w h =
         , Clg.filled c     <| Clg.rect (0.92 * w)  (0.9  * h)
         , Clg.toForm       <| Txt.centered
                            <| Txt.color black
-                           <| Txt.height (h * 0.45)
+                           <| Txt.height (w * 0.15)
                            <| Txt.typeface font
                            <| Txt.fromString str
         ]
@@ -166,8 +166,29 @@ optionsMenu w h st =
       <| Clg.collage w h
            [ menuBackground fw fh
            , logoBox (fh / 4) el_wt el_ht (fh / 8)
-           , Clg.moveY (-fh / 15)       <| myButton Go "Play Game"  el_wt el_ht
-           , Clg.moveY (-4.3 * fh / 15) <| myButton Strt "Go Back"  el_wt el_ht
+           , Clg.moveY (-5.85 * fh / 15) <|
+              Clg.group
+                [ Clg.moveX (-0.9 * fw / 4) <| myButton Go "Play Game"  (el_wt / 2) (2 * el_ht / 3)
+                , Clg.moveX ( 0.9 * fw / 4) <| myButton Strt "Go Back"  (el_wt / 2) (2 * el_ht / 3)
+                ]
+           , Clg.move (0.04 * fw, (fh / 18)) <|
+              Clg.group 
+                [ Clg.moveX (-0.9 * fw / 4) 
+                    <| Clg.toForm 
+                    <| Txt.centered
+                    <| Txt.color yellow
+                    <| Txt.height (fw * 0.08)
+                    <| Txt.typeface font
+                    <| Txt.fromString "Mode"
+                , Clg.moveX (0.6 * fw / 4)  
+                    <| Clg.toForm
+                    <| El.width (w // 3)
+                    <| Inp.dropDown (\b -> Signal.send actionChannel <| ButtonAction <| PicMode b)
+                         [ ("Game Modes", Nothing   )
+                         , ("Normal"    , Just False)
+                         , ("CS223"     , Just True )
+                         ]
+                ]
            ]
 
 view : (Int, Int) -> State -> El.Element
@@ -235,7 +256,7 @@ view (w, h) st =
 
 --Controller
 
-type ButtonPressed = Go | Options | Strt
+type ButtonPressed = Go | Options | Strt | PicMode (Maybe Bool)
 type Action = KeyAction Key.KeyCode | TimeAction | ButtonAction ButtonPressed
 
 actionChannel : Signal.Channel Action
@@ -373,6 +394,7 @@ upstate a s =
         {initState | gameState <- Loading, soundControls <- newSoundControls}
     (ButtonAction Options, _) -> {s | gameState <- OptMenu}
     (ButtonAction Strt, _) -> {s | gameState <- Start}
+    (ButtonAction (PicMode (Just b)), _) -> {s | raviMode <- b}
     _ -> s
 
 {- note from Abe and Kira, much of the audio code below was written using

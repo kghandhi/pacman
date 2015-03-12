@@ -63,7 +63,8 @@ type alias State =
       defaultMode   : Mode,
       dyingList     : Int,
       soundControls : SoundControls,
-      raviMode : Bool
+      raviMode      : Bool,
+      level         : Int
     }
 
 type Dir = Left | Right | Up | Down
@@ -243,7 +244,7 @@ initState : State
 initState =
     { points        = 0,
       extraLives    = 2,
-      gameState     = Start,
+      gameState     = OptMenu,
       board         = initBoard,
       pacman        = initPacman,
       blinky        = initBlinky,
@@ -257,5 +258,6 @@ initState =
       defaultMode   = Scatter,
       dyingList     = 9,
       soundControls = initSounds,
-      raviMode = True
+      raviMode      = False,
+      level         = 1
     }
