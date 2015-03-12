@@ -166,21 +166,18 @@ optionsMenu w h st =
       <| Clg.collage w h
            [ menuBackground fw fh
            , logoBox (fh / 4) el_wt el_ht (fh / 8)
-           , Clg.moveY (-5.85 * fh / 15) <|
-              Clg.group
-                [ Clg.moveX (-0.9 * fw / 4) <| myButton Go "Play Game"  (el_wt / 2) (2 * el_ht / 3)
-                , Clg.moveX ( 0.9 * fw / 4) <| myButton Strt "Go Back"  (el_wt / 2) (2 * el_ht / 3)
-                ]
-           , Clg.move (0.04 * fw, (fh / 18)) <|
-              Clg.group 
-                [ Clg.moveX (-0.9 * fw / 4) 
+           , Clg.move ((-0.9 * fw / 4), (-5.85 * fh / 15)) <|
+               myButton Go "Play Game"  (el_wt / 2) (2 * el_ht / 3)
+           , Clg.move (( 0.9 * fw / 4), (-5.85 * fh / 15)) <|
+              myButton Strt "Go Back"  (el_wt / 2) (2 * el_ht / 3)
+           , Clg.move (-0.74 * fw / 4, (fh / 18))
                     <| Clg.toForm 
                     <| Txt.centered
                     <| Txt.color yellow
                     <| Txt.height (fw * 0.08)
                     <| Txt.typeface font
                     <| Txt.fromString "Mode"
-                , Clg.moveX (0.6 * fw / 4)  
+            , Clg.move ((0.74 * fw / 4), (fh / 18)) 
                     <| Clg.toForm
                     <| El.width (w // 3)
                     <| Inp.dropDown (\b -> Signal.send actionChannel <| ButtonAction <| PicMode b)
@@ -188,7 +185,6 @@ optionsMenu w h st =
                          , ("Normal"    , Just False)
                          , ("CS223"     , Just True )
                          ]
-                ]
            ]
 
 view : (Int, Int) -> State -> El.Element
@@ -391,7 +387,7 @@ upstate a s =
         sCs = s.soundControls
         newSoundControls = {sCs | intro <- True}
       in
-        {initState | gameState <- Loading, soundControls <- newSoundControls}
+        {initState | gameState <- Loading, soundControls <- newSoundControls, raviMode <- s.raviMode}
     (ButtonAction Options, _) -> {s | gameState <- OptMenu}
     (ButtonAction Strt, _) -> {s | gameState <- Start}
     (ButtonAction (PicMode (Just b)), _) -> {s | raviMode <- b}
