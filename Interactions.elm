@@ -1,6 +1,6 @@
 module Interactions where
 
-import Pacman (..)
+import Pacman exposing (..)
 import List
 
 pif (x, y) = (round x, round y)
