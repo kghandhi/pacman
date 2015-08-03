@@ -1,8 +1,8 @@
 module GhostControls where
 
-import Controls (..)
+import Controls exposing (..)
 import Random as R
-import Pacman (..)
+import Pacman exposing (..)
 import List as Lst
 
 dist (x1, y1) (x2, y2) = sqrt ((x2-x1)^2 + (y2-y1)^2)
