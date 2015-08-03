@@ -1,14 +1,14 @@
 module Pacman where
 
 import PacModels as M
-import List ((::))
-import List ((++))
+import List exposing ((::))
+import List exposing ((++))
 import List
 import Array as A
 import Random as R
 
-import Color (..)
-import Signal (Signal, (<~), (~))
+import Color exposing (..)
+import Signal exposing (Signal, (<~), (~))
 import Signal
 import Window
 import Mouse
