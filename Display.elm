@@ -1,22 +1,22 @@
 module Display where
 
-import Pacman (..)
+import Pacman exposing (..)
 import Controls      as Ctr
 import BoardControls as BCtr
 import GhostControls as GCtr
 import Interactions  as Itr
 import PacModels     as Mod
 import Utils         as Utl
-import Time (..)
+import Time exposing (..)
 import Audio as Aud
-import Audio (defaultTriggers)
+import Audio exposing (defaultTriggers)
 
-import List ((::))
+import List exposing ((::))
 import List
 import Array as A
 
-import Color (..)
-import Signal (Signal, (<~), (~))
+import Color exposing (..)
+import Signal exposing (Signal, (<~), (~))
 import Signal
 import Window
 import Mouse
