@@ -1,7 +1,7 @@
 module Controls where
 
 import Pacman   as Pac
-import Array (Array)
+import Array exposing (Array)
 import Array    as Arr
 import List     as Lst
 import Keyboard as Key
