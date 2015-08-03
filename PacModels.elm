@@ -1,9 +1,9 @@
 module PacModels where
-import Graphics.Collage (..)
-import Graphics.Element (Element, size)
+import Graphics.Collage exposing (..)
+import Graphics.Element exposing (Element, size)
 import Graphics.Element as El
-import Color (..)
-import Signal (Signal)
+import Color exposing (..)
+import Signal exposing (Signal)
 import Signal as Sig
 import Time as Tm
 import Window as Win
