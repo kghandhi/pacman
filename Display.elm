@@ -27,6 +27,8 @@ import Graphics.Input   as Inp
 import String
 import Keyboard as Key
 
+fromJust (Just x) = x
+
 -- View
 font = ["Andale Mono", "monospace"]
 
@@ -91,7 +93,7 @@ myButton msg str w h =
       Clg.collage (round w) (round h)
         [ Clg.filled black <| Clg.rect (0.95 * w)  (0.96 * h)
         , Clg.filled c     <| Clg.rect (0.92 * w)  (0.9  * h)
-        , Clg.toForm       <| Txt.centered
+        , Clg.toForm       <| El.centered
                            <| Txt.color black
                            <| Txt.height (w * 0.13)
                            <| Txt.typeface font
@@ -103,7 +105,7 @@ myButton msg str w h =
   in
     Clg.toForm
         <| Inp.customButton
-            (Signal.send actionChannel (ButtonAction msg))
+            (Signal.message actionMailbox.address (ButtonAction msg))
             (button_up    str)
             (button_hover str)
             (button_down  str)
@@ -125,7 +127,7 @@ logoBox logoOffset ovalW ovalH textH =
     <| Clg.group
          [ Clg.filled yellow  <| Clg.oval (1.05 * ovalW) (1.05 * ovalH)
          , Clg.filled black   <| Clg.oval ovalW ovalH
-         , Clg.toForm         <| Txt.centered
+         , Clg.toForm         <| El.centered
                               <| Txt.color yellow
                               <| Txt.height  textH
                               <| Txt.typeface font
@@ -172,7 +174,7 @@ optionsMenu w h st =
               myButton Strt "Go Back"  (el_wt / 2) (2 * el_ht / 3)
            , Clg.move (-0.74 * fw / 4, (fh / 18))
                     <| Clg.toForm
-                    <| Txt.centered
+                    <| El.centered
                     <| Txt.color yellow
                     <| Txt.height (fw * 0.08)
                     <| Txt.typeface font
@@ -180,7 +182,7 @@ optionsMenu w h st =
             , Clg.move ((0.74 * fw / 4), (fh / 18))
                     <| Clg.toForm
                     <| El.width (w // 3)
-                    <| Inp.dropDown (\b -> Signal.send actionChannel <| ButtonAction <| PicMode b)
+                    <| Inp.dropDown (\b -> Signal.message actionMailbox.address <| ButtonAction <| PicMode b)
                          [ ("Game Modes", Nothing   )
                          , ("Normal"    , Just False)
                          , ("CS223"     , Just True )
@@ -200,7 +202,7 @@ view (w, h) st =
         score = "SCORE: " ++ (toString st.points)
               |> Txt.fromString
               |> Txt.style scoreStyle
-              |> Txt.leftAligned
+              |> El.leftAligned
         scoreLives = El.flow El.right [score, (displayLives st.extraLives magicNumber ravi)]
 
         gState_pos = Utl.itow (bSide * numCols) (titleHeight + 20 + (bSide * numRows)) (13.5, 17)
@@ -230,7 +232,7 @@ view (w, h) st =
                         let
                             self = Mod.animatePacman pac_dir (toFloat (bSide // 2)) ravi
                         in
-                          List.head <| List.drop (dyingStates - st.dyingList) self
+                          fromJust <| List.head <| List.drop (dyingStates - st.dyingList) self
                     _ -> (Mod.pacman pac_dir <| toFloat <| bSide // 2) ravi
         ghosts = if st.gameState == Dying then Clg.toForm El.empty
                  else Clg.group [Clg.move pinky_pos <| renderGhost st.pinky bSide ravi
@@ -255,16 +257,16 @@ view (w, h) st =
 type ButtonPressed = Go | Options | Strt | PicMode (Maybe Bool)
 type Action = KeyAction Key.KeyCode | TimeAction | ButtonAction ButtonPressed
 
-actionChannel : Signal.Channel Action
-actionChannel =
-  Signal.channel <| ButtonAction Go
+actionMailbox : Signal.Mailbox Action
+actionMailbox =
+  Signal.mailbox <| ButtonAction Go
 
 actions : Signal Action
 actions =
   Signal.mergeMany
-    [ (Signal.map (\k -> KeyAction k) Key.lastPressed)
+    [ (Signal.map (\k -> KeyAction k) Key.presses)
     , (Signal.sampleOn (fps 40)  <| Signal.constant TimeAction)
-    , (Signal.subscribe actionChannel)
+    , (actionMailbox.signal)
     ]
 
 
