@@ -2,7 +2,6 @@ module Pacman where
 
 import PacModels as M
 import List exposing ((::))
-import List exposing ((++))
 import List
 import Array as A
 import Random as R
