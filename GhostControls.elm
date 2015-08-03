@@ -5,6 +5,8 @@ import Random as R
 import Pacman exposing (..)
 import List as Lst
 
+fromJust (Just x) = x
+
 dist (x1, y1) (x2, y2) = sqrt ((x2-x1)^2 + (y2-y1)^2)
 
 pfi : (Int, Int) -> Pos
@@ -52,11 +54,12 @@ updateGhostPos g targ =
                    in
                      (dr, n_pos, distToTarg n_pos))
                 legal_dirs
+            fst_dir = fromJust <| Lst.head dirs_and_dists
             max_dst (dr1, ps1, dst1) (dr2, ps2, dst2) =
               if | dst1 < dst2 -> (dr1, ps1, dst1)
                  | otherwise   -> (dr2, ps2, dst2)
           in
-            Lst.foldl1 max_dst dirs_and_dists
+            Lst.foldl max_dst fst_dir dirs_and_dists
     new_pos =
       if | new_x < 0                   -> (toFloat numCols - 1, new_y)
          | new_x > toFloat numCols - 1 -> (0, new_y)
@@ -111,7 +114,7 @@ swapMode st upd =
            clyde       <- update st.clyde,
            modeChanges <-
             case upd of
-              NoChange -> Lst.tail st.modeChanges
+              NoChange -> fromJust <| Lst.tail st.modeChanges
               _        -> st.modeChanges,
          defaultMode   <- new_mode}
 
@@ -128,7 +131,7 @@ makeFlee g = {g | self <- Scared
 
 updateGhosts : State -> Bool -> State
 updateGhosts st atePill =
-    if st.timers.fleeTimer < fleeTime && not atePill && (Lst.isEmpty st.modeChanges || st.timers.gameTimer < Lst.head st.modeChanges)
+    if st.timers.fleeTimer < fleeTime && not atePill && (Lst.isEmpty st.modeChanges || st.timers.gameTimer < (fromJust <| Lst.head st.modeChanges))
     then
       let
           b = st.blinky
