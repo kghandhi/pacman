@@ -1,4 +1,5 @@
 module PacModels where
+
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (Element, size)
 import Graphics.Element as El
@@ -44,12 +45,12 @@ pacman d r ravi =
                 Down -> polygon [(0,0), (m,-r'), (-m,-r')]
         s = 2 * (floor r)
     in
-      if ravi then group [toForm <| El.fittedImage s s "/ravi.png"
+      if ravi then group [toForm <| El.fittedImage s s "/graphics/ravi.png"
                     , filled black <| tri]
       else group [filled yellow <| circle r, filled black <| tri]
 
 makeP c r t = group [filled c <| circle r, t]
-makeR r t = group [toForm <| El.fittedImage (2* (floor r)) (2 * (floor r)) "/ravi.png", t]
+makeR r t = group [toForm <| El.fittedImage (2* (floor r)) (2 * (floor r)) "/graphics/ravi.png", t]
 
 animatePacman : ModDir -> Float -> Bool -> List Form
 animatePacman d r ravi =
@@ -91,9 +92,10 @@ animatePacman d r ravi =
 -- If the ghost is in scared mode, g = 'scared'
 ghost : String -> Float -> Float -> Bool -> Form
 ghost g w h ravi =
-    if | (g /= "scared") && ravi && (g /= "dead") -> toForm <| El.fittedImage (floor w) (floor h) ("/" ++ g ++ "ravi.png")
-       | otherwise ->
-           toForm <| El.fittedImage (floor w) (floor h) ("/" ++ g ++ ".png")
+    if (g /= "scared") && ravi && (g /= "dead") then
+      toForm <| El.fittedImage (floor w) (floor h) ("/graphics/" ++ g ++ "ravi.png")
+    else
+      toForm <| El.fittedImage (floor w) (floor h) ("/graphics/" ++ g ++ ".png")
 
 pellet : Float -> Form
 pellet r =
@@ -144,8 +146,10 @@ key w h =
   sz_toForm w h fruit
 
 view : (Int, Int) -> List Form -> Element
-view (w, h) (f::_) =
-  collage w h [background (toFloat w) (toFloat h), f]
+view (w, h) forms =
+  case forms of
+    [] -> collage w h [background (toFloat w) (toFloat h)]
+    f::_ -> collage w h [background (toFloat w) (toFloat h), f]
 
 -- --upstate : a -> List Form -> List Form
 -- upstate _ (f::fs) =

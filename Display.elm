@@ -16,8 +16,8 @@ import List
 import Array as A
 
 import Color exposing (..)
-import Signal exposing (Signal, (<~), (~))
 import Signal
+import Signal.Extra exposing (andMap)
 import Window
 import Mouse
 import Text as Txt
@@ -26,8 +26,13 @@ import Graphics.Collage as Clg
 import Graphics.Input   as Inp
 import String
 import Keyboard as Key
+import Char exposing (KeyCode)
 
-fromJust (Just x) = x
+unsafeFromJust : Maybe a -> a
+unsafeFromJust maybe =
+  case maybe of
+    Just value -> value
+    Nothing -> Debug.crash "This shouldn't happen"
 
 -- View
 font = ["Andale Mono", "monospace"]
@@ -35,7 +40,7 @@ font = ["Andale Mono", "monospace"]
 title w h =
     El.container w (h + 20) El.middle
           <| El.flow El.down
-                 [El.image w h "/pacman-logo.jpg", El.spacer w 20]
+                 [El.image w h "/graphics/pacman-logo.jpg", El.spacer w 20]
 
 -- renderPacman : Pacman -> Int -> El.Element
 -- renderPacman p bSide =
@@ -57,6 +62,7 @@ displayBox b bSide =
       Pill   -> Clg.collage bSide bSide [Mod.pill ((toFloat bSide) / 3)]
       Wall   -> Clg.collage bSide bSide [Mod.wall (toFloat bSide)]
       Gate   -> Clg.collage bSide bSide [Mod.gate (toFloat bSide)]
+      Fruit  -> Clg.collage bSide bSide [Mod.fruit]
 
 displayLives : Int -> Int -> Bool -> El.Element
 displayLives lives sz ravi =
@@ -114,7 +120,7 @@ menuBackground : Float -> Float -> Clg.Form
 menuBackground w h =
   let
     lin_stl  = Clg.solid darkYellow
-    lin_stl' = {lin_stl | width <- 7}
+    lin_stl' = {lin_stl | width = 7}
   in
     Clg.group
       [ Clg.filled darkBlue   <| Clg.rect w h
@@ -207,8 +213,8 @@ view (w, h) st =
 
         gState_pos = Utl.itow (bSide * numCols) (titleHeight + 20 + (bSide * numRows)) (13.5, 17)
         gState = case st.gameState of
-                   Loading -> El.fittedImage (6 * bSide) bSide "/loading.png"
-                   Over    -> El.fittedImage (8 * bSide) bSide "/over.png"
+                   Loading -> El.fittedImage (6 * bSide) bSide "/graphics/loading.png"
+                   Over    -> El.fittedImage (8 * bSide) bSide "/graphics/over.png"
                    _       -> El.empty
 
         rowBuilder bxs = El.flow El.left (List.map (\b -> displayBox b bSide) bxs)
@@ -232,7 +238,7 @@ view (w, h) st =
                         let
                             self = Mod.animatePacman pac_dir (toFloat (bSide // 2)) ravi
                         in
-                          fromJust <| List.head <| List.drop (dyingStates - st.dyingList) self
+                          unsafeFromJust <| List.head <| List.drop (dyingStates - st.dyingList) self
                     _ -> (Mod.pacman pac_dir <| toFloat <| bSide // 2) ravi
         ghosts = if st.gameState == Dying then Clg.toForm El.empty
                  else Clg.group [Clg.move pinky_pos <| renderGhost st.pinky bSide ravi
@@ -246,16 +252,20 @@ view (w, h) st =
                  , Clg.move pac_pos    <| pacSelf
                  , ghosts
                  , Clg.move gState_pos <| Clg.toForm gState
-                 , if  | st.gameState == Start   -> startMenu   (min w 350) (min h 400) st
-                       | st.gameState == Over2   -> overMenu    (min w 350) (min h 400) st
-                       | st.gameState == OptMenu -> optionsMenu (min w 350) (min h 400) st
-                       | otherwise               -> Clg.toForm El.empty
+                 , if st.gameState == Start then
+                      startMenu   (min w 350) (min h 400) st
+                   else if st.gameState == Over2 then
+                      overMenu    (min w 350) (min h 400) st
+                   else if st.gameState == OptMenu then
+                      optionsMenu (min w 350) (min h 400) st
+                   else
+                      Clg.toForm El.empty
                  ]
 
 --Controller
 
 type ButtonPressed = Go | Options | Strt | PicMode (Maybe Bool)
-type Action = KeyAction Key.KeyCode | TimeAction | ButtonAction ButtonPressed
+type Action = KeyAction KeyCode | TimeAction | ButtonAction ButtonPressed
 
 actionMailbox : Signal.Mailbox Action
 actionMailbox =
@@ -285,12 +295,12 @@ currState =
       }
   in
     Signal.dropRepeats
-      <| Signal.map (\s -> {s | pellsAte    <- 0,
-                                pillsAte    <- 0,
-                                timers      <- zeroedTimers,
-                                ghostPoints <- [],
-                                modeChanges <- [],
-                                defaultMode <- Chase})
+      <| Signal.map (\s -> {s | pellsAte    = 0,
+                                pillsAte    = 0,
+                                timers      = zeroedTimers,
+                                ghostPoints = [],
+                                modeChanges = [],
+                                defaultMode = Chase})
       <| Signal.foldp upstate initState actions
 
 allNormal : State -> Bool
@@ -301,35 +311,37 @@ upstate : Action -> State -> State
 upstate a s =
   case (a, s.gameState) of
     (TimeAction, Dying) ->
-        if | s.dyingList  > 0 -> {s | dyingList     <- s.dyingList - 1}
-           | s.extraLives < 0 -> {s | gameState     <- Over}
-           | otherwise        -> {s | dyingList     <- dyingStates,
-                                      gameState     <- Loading,
-                                      pacman        <- initPacman,
-                                      blinky        <- initBlinky,
-                                      pinky         <- initPinky,
-                                      inky          <- initInky,
-                                      clyde         <- initClyde}
+        if s.dyingList > 0 then
+          {s | dyingList     = s.dyingList - 1}
+        else if s.extraLives < 0 then
+          {s | gameState     = Over}
+        else
+          {s | dyingList     = dyingStates,
+               gameState     = Loading,
+               pacman        = initPacman,
+               blinky        = initBlinky,
+               pinky         = initPinky,
+               inky          = initInky,
+               clyde         = initClyde}
     (TimeAction, Loading) ->
       let
         newStartTimer    = s.timers.startTimer - 0.025
         newSTLess0       = newStartTimer < 0
         tmers            = s.timers
         newTimers        =
-          {tmers | startTimer <- if | newSTLess0 -> initState.timers.startTimer / 2
-                                    | otherwise  -> newStartTimer}
+          {tmers | startTimer = if newSTLess0 then initState.timers.startTimer / 2 else newStartTimer}
         sCs              = s.soundControls
-        newSoundControls = {sCs | dying <- False, intro <- False}
+        newSoundControls = {sCs | dying = False, intro = False}
       in
-        {s | timers        <- newTimers,
-             gameState     <- if newSTLess0 then Active else Loading,
-             pacman        <- initPacman,
-             blinky        <- initBlinky,
-             pinky         <- initPinky,
-             inky          <- initInky,
-             clyde         <- initClyde,
-             soundControls <- if newSTLess0 then newSoundControls else s.soundControls}
-    (KeyAction k, Active) -> {s | pacman <- Ctr.updateDir  k s.pacman}
+        {s | timers        = newTimers,
+             gameState     = if newSTLess0 then Active else Loading,
+             pacman        = initPacman,
+             blinky        = initBlinky,
+             pinky         = initPinky,
+             inky          = initInky,
+             clyde         = initClyde,
+             soundControls = if newSTLess0 then newSoundControls else s.soundControls}
+    (KeyAction k, Active) -> {s | pacman = Ctr.updateDir  k s.pacman}
     (TimeAction, Active)  ->
       let
         (extra_pts, newBoard) = BCtr.updateBoard s.board s.pacman
@@ -344,70 +356,75 @@ upstate a s =
         stopFlee     = s.timers.fleeTimer >= fleeTime
         tmers        = s.timers
         newTimers    =
-          {tmers | gameTimer   <-
+          {tmers | gameTimer   =
                      tmers.gameTimer + (if tmers.fleeTimer > 0 then 0 else 0.025)
-                 , fleeTimer   <-
-                     if | stopFlee
-                            || not s.timers.fleeTimerOn
-                            || atePill -> 0
-                        | otherwise    -> tmers.fleeTimer + 0.025
-                 , fleeTimerOn <-
-                     if | stopFlee  -> False
-                        | atePill   -> True
-                        | otherwise -> tmers.fleeTimerOn
-                 , pelletSoundTimer <-
-                     if | atePill || atePell -> 0.3
-                        | otherwise          -> tmers.pelletSoundTimer - 0.025}
+                 , fleeTimer   =
+                     if stopFlee || not s.timers.fleeTimerOn || atePill then
+                        0
+                     else
+                        tmers.fleeTimer + 0.025
+                 , fleeTimerOn =
+                     if stopFlee then
+                        False
+                     else if atePill then
+                        True
+                     else
+                        tmers.fleeTimerOn
+                 , pelletSoundTimer =
+                     if atePill || atePell then
+                        0.3
+                     else
+                        tmers.pelletSoundTimer - 0.025}
         sCs              = s.soundControls
-        newSoundControls = if | atePill || atePell
-                                  -> {sCs | eatPellet <- True}
-                              | newTimers.pelletSoundTimer <= 0
-                                  -> {sCs | eatPellet <- False}
-                              | otherwise
-                                  -> sCs
-        s' = {s | pacman        <- Ctr.updatePacPos s.pacman newTimers.fleeTimerOn
-                , board         <- newBoard
-                , points        <- old_pts + extra_pts
-                , pellsAte      <- new_pellsAte
-                , pillsAte      <- new_pillsAte
-                , timers        <- newTimers
-                , ghostPoints   <- if atePill then ghostPoints else s.ghostPoints
-                , soundControls <- newSoundControls}
+        newSoundControls = if atePill || atePell then
+                              {sCs | eatPellet = True}
+                           else if newTimers.pelletSoundTimer <= 0 then
+                              {sCs | eatPellet = False}
+                           else
+                              sCs
+        s' = {s | pacman        = Ctr.updatePacPos s.pacman newTimers.fleeTimerOn
+                , board         = newBoard
+                , points        = old_pts + extra_pts
+                , pellsAte      = new_pellsAte
+                , pillsAte      = new_pillsAte
+                , timers        = newTimers
+                , ghostPoints   = if atePill then ghostPoints else s.ghostPoints
+                , soundControls = newSoundControls}
       in
         if level_done
         then
-          {initState | points     <- s'.points,
-                       extraLives <- s'.extraLives,
-                       gameState  <- Loading,
-                       timers     <- {initTimers | startTimer <- initTimers.startTimer / 2},
-                       raviMode   <- s'.raviMode,
-                       level      <- s'.level + 1}
+          {initState | points     = s'.points,
+                       extraLives = s'.extraLives,
+                       gameState  = Loading,
+                       timers     = {initTimers | startTimer = initTimers.startTimer / 2},
+                       raviMode   = s'.raviMode,
+                       level      = s'.level + 1}
         else
           Itr.interact <| GCtr.updateGhosts s'
 
                 atePill
     (TimeAction, Over)   ->
-      if | s.timers.overTimer <= 0 ->
-             let
-               sCs = s.soundControls
-               newSoundControls = {sCs | dying <- False}
-             in
-               {s | gameState <- Over2, soundControls <- newSoundControls}
-         | otherwise               ->
-             let
-               tmers = s.timers
-               newTimers = {tmers | overTimer <- tmers.overTimer - 0.025}
-            in
-             {s | timers <- newTimers}
+      if s.timers.overTimer <= 0 then
+        let
+          sCs = s.soundControls
+          newSoundControls = {sCs | dying = False}
+        in
+          {s | gameState = Over2, soundControls = newSoundControls}
+      else
+        let
+          tmers = s.timers
+          newTimers = {tmers | overTimer = tmers.overTimer - 0.025}
+        in
+          {s | timers = newTimers}
     (ButtonAction Go, _) ->
       let
         sCs = s.soundControls
-        newSoundControls = {sCs | intro <- True}
+        newSoundControls = {sCs | intro = True}
       in
-        {initState | gameState <- Loading, soundControls <- newSoundControls, raviMode <- s.raviMode}
-    (ButtonAction Options, _) -> {s | gameState <- OptMenu}
-    (ButtonAction Strt, _) -> {s | gameState <- Start}
-    (ButtonAction (PicMode (Just b)), _) -> {s | raviMode <- b}
+        {initState | gameState = Loading, soundControls = newSoundControls, raviMode = s.raviMode}
+    (ButtonAction Options, _) -> {s | gameState = OptMenu}
+    (ButtonAction Strt, _) -> {s | gameState = Start}
+    (ButtonAction (PicMode (Just b)), _) -> {s | raviMode = b}
     _ -> s
 
 {- note from Abe and Kira, much of the audio code below was written using
@@ -427,10 +444,10 @@ deathHandleAudio st =
   else Aud.Pause
 
 deathBuilder : Signal (Aud.Event, Aud.Properties)
-deathBuilder = Aud.audio { src = "/PacManDies.wav",
-                           triggers = {defaultTriggers | timeupdate <- True},
+deathBuilder = Aud.audio { src = "/sounds/PacManDies.wav",
+                           triggers = {defaultTriggers | timeupdate = True},
                            propertiesHandler = deathPropertiesHandler,
-                           actions = deathHandleAudio <~ currState}
+                           actions = Signal.map deathHandleAudio currState}
 
 introPropertiesHandler : Aud.Properties -> Maybe Aud.Action
 introPropertiesHandler props =
@@ -445,10 +462,10 @@ introHandleAudio st =
   else Aud.Pause
 
 introBuilder : Signal (Aud.Event, Aud.Properties)
-introBuilder = Aud.audio { src = "/pacman_beginning.wav",
-                           triggers = {defaultTriggers | timeupdate <- True},
+introBuilder = Aud.audio { src = "/sounds/pacman_beginning.wav",
+                           triggers = {defaultTriggers | timeupdate = True},
                            propertiesHandler = introPropertiesHandler,
-                           actions = introHandleAudio <~ currState}
+                           actions = Signal.map introHandleAudio currState}
 
 ghostPropertiesHandler : Aud.Properties -> Maybe Aud.Action
 ghostPropertiesHandler props =
@@ -463,10 +480,10 @@ ghostHandleAudio st =
   else Aud.Pause
 
 ghostBuilder : Signal (Aud.Event, Aud.Properties)
-ghostBuilder = Aud.audio { src = "/pacman_eatghost.wav",
-                           triggers = {defaultTriggers | timeupdate <- True},
+ghostBuilder = Aud.audio { src = "/sounds/pacman_eatghost.wav",
+                           triggers = {defaultTriggers | timeupdate = True},
                            propertiesHandler = ghostPropertiesHandler,
-                           actions = ghostHandleAudio <~ currState}
+                           actions = Signal.map ghostHandleAudio currState}
 
 pellPropertiesHandler : Aud.Properties -> Maybe Aud.Action
 pellPropertiesHandler props =
@@ -481,10 +498,11 @@ pellHandleAudio st =
   else Aud.Pause
 
 pellBuilder : Signal (Aud.Event, Aud.Properties)
-pellBuilder = Aud.audio { src = "/pacman_chomp.wav",
-                           triggers = {defaultTriggers | timeupdate <- True},
+pellBuilder = Aud.audio { src = "/sounds/pacman_chomp.wav",
+                           triggers = {defaultTriggers | timeupdate = True},
                            propertiesHandler = pellPropertiesHandler,
-                           actions = pellHandleAudio <~ currState}
+                           actions = Signal.map pellHandleAudio currState}
 
 main : Signal El.Element
-main = view <~ Window.dimensions ~ currState
+--main = view <~ Window.dimensions ~ currState
+main = view `Signal.map` Window.dimensions `andMap` currState
