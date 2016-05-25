@@ -1,0 +1,17 @@
+{
+    "version": "1.0.0",
+    "summary": "Pacman",
+    "repository": "https://github.com/kghandhi/pacman.git",
+    "license": "BSD3",
+    "source-directories": [
+        ".",
+        "lib/elm-audio"
+    ],
+    "exposed-modules": [],
+    "native-modules": true,
+    "dependencies": {
+        "Apanatshka/elm-signal-extra": "5.7.0 <= v < 6.0.0",
+        "elm-lang/core": "3.0.0 <= v < 4.0.0"
+    },
+    "elm-version": "0.16.0 <= v < 0.17.0"
+}

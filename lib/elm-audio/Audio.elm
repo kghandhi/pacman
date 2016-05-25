@@ -1,10 +1,20 @@
-module Audio where
+module Audio
+    ( Action(..)
+    , Properties
+    , Event(..)
+    , audio
+    , defaultTriggers
+    ) where
 
-{- A note from Abe and Kira: we did not write this module, 
-   it was written by Joseph Collard and can be found here:
-   https://github.com/jcollard/elm-audio -}
+{-| The Audio provides an interface for playing audio
 
-{-| The Audio provides an interface for playing audio -}
+# Definition
+@docs Action, Properties, Event
+
+# Common Helpers
+@docs defaultTriggers, audio
+
+-}
 
 import Native.Audio
 import Signal
@@ -13,7 +23,7 @@ import Set
 import Time exposing (Time)
 
 {-| An Action controls how audio is heard. -}
-type Action = Play | Pause | Seek Time | SeekAndPause Time | NoChange
+type Action = Play | Pause | Seek Time | NoChange
 
 {-| A Properties record contains information related to audio -}
 type alias Properties = { duration : Time, currentTime : Time, ended : Bool }
@@ -23,7 +33,8 @@ type alias Properties = { duration : Time, currentTime : Time, ended : Bool }
 type alias Triggers = { timeupdate : Bool, ended : Bool }
 
 {-| The defaultTriggers is a record for ease of use. All Triggers are
-    set to False. -}
+    set to False.
+-}
 defaultTriggers : Triggers
 defaultTriggers = { timeupdate = False, ended = False }
 
@@ -38,7 +49,8 @@ type Event = TimeUpdate
     src - The Path to an audio file
     triggers - A Triggers Record describing on which events we want to receive Properties
     propertiesHandler - A Function that is called each time Properties are calculated.
-    actions - A Signal of incomming actions that manipulate the audio -}
+    actions - A Signal of incomming actions that manipulate the audio
+-}
 type alias Builder = { src : String,
                        triggers : Triggers,
                        propertiesHandler : (Properties -> Maybe Action),
@@ -55,9 +67,8 @@ audio audioBuilder =
                        Play -> Native.Audio.play sound
                        Pause -> Native.Audio.pause sound
                        Seek t -> Native.Audio.seek sound t
-                       --SeekAndPause t -> Native.Audio.pause <| Native.Audio.seek sound t
                        NoChange -> ())
-    in Native.Audio.audio 
+    in Native.Audio.audio
           handleEvent
           audioBuilder.src
           audioBuilder.triggers
