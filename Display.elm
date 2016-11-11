@@ -27,6 +27,7 @@ import Graphics.Input   as Inp
 import String
 import Keyboard as Key
 import Char exposing (KeyCode)
+import Set
 
 unsafeFromJust : Maybe a -> a
 unsafeFromJust maybe =
@@ -271,10 +272,42 @@ actionMailbox : Signal.Mailbox Action
 actionMailbox =
   Signal.mailbox <| ButtonAction Go
 
+type alias Directions = 
+  { up : KeyCode
+  , down : KeyCode
+  , left : KeyCode
+  , right : KeyCode
+  }
+
+toUDLR : Directions -> Set.Set KeyCode -> { u : Bool, d : Bool, l : Bool, r : Bool }
+toUDLR { up, down, left, right } keyCodes = 
+  let 
+      is keyCode = Set.member keyCode keyCodes
+  in
+      { u = is up
+      , d = is down
+      , l = is left
+      , r = is right 
+      }
+
+dropMap : (a -> b) -> Signal a -> Signal b
+dropMap f signal = Signal.dropRepeats (Signal.map f signal)
+
+
+arrows : Signal { u : Bool, d : Bool, l : Bool, r : Bool }
+arrows = dropMap (toUDLR {up = 38, down = 40, left = 37, right = 39}) Key.keysDown
+
+keypress : { u : Bool, d : Bool, l : Bool, r : Bool } -> Action
+keypress {u, d, l, r} = if u then KeyAction 38 
+  else if d then KeyAction 40 
+  else if l then KeyAction 37 
+  else if r then KeyAction 39 
+  else TimeAction 
+
 actions : Signal Action
 actions =
   Signal.mergeMany
-    [ (Signal.map (\k -> KeyAction k) Key.presses)
+    [ (Signal.map keypress arrows)
     , (Signal.sampleOn (fps 40)  <| Signal.constant TimeAction)
     , (actionMailbox.signal)
     ]
@@ -504,5 +537,4 @@ pellBuilder = Aud.audio { src = "/sounds/pacman_chomp.wav",
                            actions = Signal.map pellHandleAudio currState}
 
 main : Signal El.Element
---main = view <~ Window.dimensions ~ currState
 main = view `Signal.map` Window.dimensions `andMap` currState
