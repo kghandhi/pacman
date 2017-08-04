@@ -35,7 +35,6 @@ unsafeFromJust maybe =
     Just value -> value
     Nothing -> Debug.crash "This shouldn't happen"
 
--- View
 font = ["Andale Mono", "monospace"]
 
 title w h =
@@ -43,27 +42,15 @@ title w h =
           <| El.flow El.down
                  [El.image w h "/graphics/pacman-logo.jpg", El.spacer w 20]
 
--- renderPacman : Pacman -> Int -> El.Element
--- renderPacman p bSide =
---     let
---         pman_form =
---             case p.dir of
---               Left  -> Mod.pacman Mod.Left ((toFloat bSide) / 2)
---               Right -> Mod.pacman Mod.Right ((toFloat bSide) / 2)
---               Up    -> Mod.pacman Mod.Up ((toFloat bSide) / 2)
---               Down  -> Mod.pacman Mod.Down ((toFloat bSide) / 2)
---     in
---       Clg.collage bSide bSide [pman_form]
-
 displayBox : Box -> Int -> El.Element
 displayBox b bSide =
     case b of
-      Empty  -> Clg.collage bSide bSide [Mod.emptySpace (toFloat bSide)]
+      Empty -> Clg.collage bSide bSide [Mod.emptySpace (toFloat bSide)]
       Pellet -> Clg.collage bSide bSide [Mod.pellet ((toFloat bSide) / 6)]
-      Pill   -> Clg.collage bSide bSide [Mod.pill ((toFloat bSide) / 3)]
-      Wall   -> Clg.collage bSide bSide [Mod.wall (toFloat bSide)]
-      Gate   -> Clg.collage bSide bSide [Mod.gate (toFloat bSide)]
-      Fruit  -> Clg.collage bSide bSide [Mod.fruit]
+      Pill -> Clg.collage bSide bSide [Mod.pill ((toFloat bSide) / 3)]
+      Wall -> Clg.collage bSide bSide [Mod.wall (toFloat bSide)]
+      Gate -> Clg.collage bSide bSide [Mod.gate (toFloat bSide)]
+      Fruit -> Clg.collage bSide bSide [Mod.fruit]
 
 displayLives : Int -> Int -> Bool -> El.Element
 displayLives lives sz ravi =
@@ -72,15 +59,16 @@ displayLives lives sz ravi =
     in
       El.flow El.left (List.map (\_ -> life) [1..lives])
 
+-- TODO: fix this magic number
 magicNumber = 45
 
 scoreStyle : Txt.Style
-scoreStyle = {typeface = font
-             , height  = Just magicNumber
-             , color   = white
-             , bold    = False
-             , italic  = False
-             , line    = Nothing
+scoreStyle = { typeface = font
+             , height = Just magicNumber
+             , color = white
+             , bold = False
+             , italic = False
+             , line = Nothing
              }
 
 renderGhost g bSide ravi =
@@ -99,32 +87,32 @@ myButton msg str w h =
     button_general c str =
       Clg.collage (round w) (round h)
         [ Clg.filled black <| Clg.rect (0.95 * w)  (0.96 * h)
-        , Clg.filled c     <| Clg.rect (0.92 * w)  (0.9  * h)
-        , Clg.toForm       <| El.centered
-                           <| Txt.color black
-                           <| Txt.height (w * 0.13)
-                           <| Txt.typeface font
-                           <| Txt.fromString str
+        , Clg.filled c <| Clg.rect (0.92 * w)  (0.9  * h)
+        , Clg.toForm <| El.centered
+                     <| Txt.color black
+                     <| Txt.height (w * 0.13)
+                     <| Txt.typeface font
+                     <| Txt.fromString str
         ]
-    button_up    str = button_general yellow      str
+    button_up str = button_general yellow str
     button_hover str = button_general lightYellow str
-    button_down  str = button_general darkYellow  str
+    button_down str = button_general darkYellow  str
   in
     Clg.toForm
         <| Inp.customButton
             (Signal.message actionMailbox.address (ButtonAction msg))
-            (button_up    str)
+            (button_up str)
             (button_hover str)
-            (button_down  str)
+            (button_down str)
 
 menuBackground : Float -> Float -> Clg.Form
 menuBackground w h =
   let
-    lin_stl  = Clg.solid darkYellow
+    lin_stl = Clg.solid darkYellow
     lin_stl' = {lin_stl | width = 7}
   in
     Clg.group
-      [ Clg.filled darkBlue   <| Clg.rect w h
+      [ Clg.filled darkBlue <| Clg.rect w h
       , Clg.outlined lin_stl' <| Clg.rect w h
       ]
 
@@ -132,13 +120,13 @@ logoBox : Float -> Float -> Float -> Float -> Clg.Form
 logoBox logoOffset ovalW ovalH textH =
   Clg.moveY logoOffset
     <| Clg.group
-         [ Clg.filled yellow  <| Clg.oval (1.05 * ovalW) (1.05 * ovalH)
-         , Clg.filled black   <| Clg.oval ovalW ovalH
-         , Clg.toForm         <| El.centered
-                              <| Txt.color yellow
-                              <| Txt.height  textH
-                              <| Txt.typeface font
-                              <| Txt.fromString "Pac-Man"
+         [ Clg.filled yellow <| Clg.oval (1.05 * ovalW) (1.05 * ovalH)
+         , Clg.filled black <| Clg.oval ovalW ovalH
+         , Clg.toForm <| El.centered
+                      <| Txt.color yellow
+                      <| Txt.height  textH
+                      <| Txt.typeface font
+                      <| Txt.fromString "Pac-Man"
          ]
 
 playMenu : Int -> Int -> State -> String -> Clg.Form
@@ -152,7 +140,7 @@ playMenu w h st startStr =
       <| Clg.collage w h
            [ menuBackground fw fh
            , logoBox (fh / 4) el_wt el_ht (fh / 8)
-           , Clg.moveY (-fh / 15)       <| myButton Go      startStr  el_wt el_ht
+           , Clg.moveY (-fh / 15) <| myButton Go      startStr  el_wt el_ht
            , Clg.moveY (-4.3 * fh / 15) <| myButton Options "Options" el_wt el_ht
            ]
 
@@ -190,9 +178,9 @@ optionsMenu w h st =
                     <| Clg.toForm
                     <| El.width (w // 3)
                     <| Inp.dropDown (\b -> Signal.message actionMailbox.address <| ButtonAction <| PicMode b)
-                         [ ("Game Modes", Nothing   )
-                         , ("Normal"    , Just False)
-                         , ("CS223"     , Just True )
+                         [ ("Game Modes", Nothing)
+                         , ("Normal", Just False)
+                         , ("CS223", Just True)
                          ]
            ]
 
@@ -200,9 +188,9 @@ view : (Int, Int) -> State -> El.Element
 view (w, h) st =
     let
         ravi = st.raviMode
-        bSide       = (h - magicNumber) // 36
+        bSide = (h - magicNumber) // 36
         titleHeight = 30
-        titleWidth  = bSide * 23
+        titleWidth = bSide * 23
 
         ttl = title titleWidth titleHeight
 
@@ -224,16 +212,16 @@ view (w, h) st =
         wFromBxs = bSide * numCols
         hFromBxs = titleHeight + 20 + (bSide * numRows)
 
-        pinky_pos  = Utl.itow wFromBxs hFromBxs st.pinky.pos
-        inky_pos   = Utl.itow wFromBxs hFromBxs st.inky.pos
+        pinky_pos = Utl.itow wFromBxs hFromBxs st.pinky.pos
+        inky_pos = Utl.itow wFromBxs hFromBxs st.inky.pos
         blinky_pos = Utl.itow wFromBxs hFromBxs st.blinky.pos
-        clyde_pos  = Utl.itow wFromBxs hFromBxs st.clyde.pos
-        pac_pos    = Utl.itow wFromBxs hFromBxs st.pacman.pos
-        pac_dir    = case st.pacman.dir of
-                       Left  -> Mod.Left
+        clyde_pos = Utl.itow wFromBxs hFromBxs st.clyde.pos
+        pac_pos = Utl.itow wFromBxs hFromBxs st.pacman.pos
+        pac_dir = case st.pacman.dir of
+                       Left -> Mod.Left
                        Right -> Mod.Right
-                       Up    -> Mod.Up
-                       Down  -> Mod.Down
+                       Up -> Mod.Up
+                       Down -> Mod.Down
         pacSelf = case st.gameState of
                     Dying ->
                         let
@@ -249,14 +237,14 @@ view (w, h) st =
     in
       El.color black
             <| Clg.collage w h
-                 [ Clg.toForm          <| colBuilder (List.map rowBuilder st.board)
-                 , Clg.move pac_pos    <| pacSelf
+                 [ Clg.toForm <| colBuilder (List.map rowBuilder st.board)
+                 , Clg.move pac_pos <| pacSelf
                  , ghosts
                  , Clg.move gState_pos <| Clg.toForm gState
                  , if st.gameState == Start then
-                      startMenu   (min w 350) (min h 400) st
+                      startMenu (min w 350) (min h 400) st
                    else if st.gameState == Over2 then
-                      overMenu    (min w 350) (min h 400) st
+                      overMenu (min w 350) (min h 400) st
                    else if st.gameState == OptMenu then
                       optionsMenu (min w 350) (min h 400) st
                    else
@@ -318,19 +306,19 @@ currState : Signal State
 currState =
   let
     zeroedTimers =
-      { gameTimer        = 0,
-        startTimer       = 0,
-        fleeTimer        = 0,
-        fleeTimerOn      = False,
-        overTimer        = 0,
-        ghostSoundTimer  = 0,
+      { gameTimer = 0,
+        startTimer = 0,
+        fleeTimer = 0,
+        fleeTimerOn = False,
+        overTimer = 0,
+        ghostSoundTimer = 0,
         pelletSoundTimer = 0
       }
   in
     Signal.dropRepeats
-      <| Signal.map (\s -> {s | pellsAte    = 0,
-                                pillsAte    = 0,
-                                timers      = zeroedTimers,
+      <| Signal.map (\s -> {s | pellsAte = 0,
+                                pillsAte = 0,
+                                timers = zeroedTimers,
                                 ghostPoints = [],
                                 modeChanges = [],
                                 defaultMode = Chase})
@@ -349,49 +337,49 @@ upstate a s =
         else if s.extraLives < 0 then
           {s | gameState     = Over}
         else
-          {s | dyingList     = dyingStates,
-               gameState     = Loading,
-               pacman        = initPacman,
-               blinky        = initBlinky,
-               pinky         = initPinky,
-               inky          = initInky,
-               clyde         = initClyde}
+          {s | dyingList = dyingStates,
+               gameState = Loading,
+               pacman = initPacman,
+               blinky = initBlinky,
+               pinky = initPinky,
+               inky = initInky,
+               clyde = initClyde}
     (TimeAction, Loading) ->
       let
-        newStartTimer    = s.timers.startTimer - 0.025
-        newSTLess0       = newStartTimer < 0
-        tmers            = s.timers
-        newTimers        =
+        newStartTimer = s.timers.startTimer - 0.025
+        newSTLess0 = newStartTimer < 0
+        tmers = s.timers
+        newTimers =
           {tmers | startTimer = if newSTLess0 then initState.timers.startTimer / 2 else newStartTimer}
-        sCs              = s.soundControls
+        sCs = s.soundControls
         newSoundControls = {sCs | dying = False, intro = False}
       in
-        {s | timers        = newTimers,
-             gameState     = if newSTLess0 then Active else Loading,
-             pacman        = initPacman,
-             blinky        = initBlinky,
-             pinky         = initPinky,
-             inky          = initInky,
-             clyde         = initClyde,
+        {s | timers = newTimers,
+             gameState = if newSTLess0 then Active else Loading,
+             pacman = initPacman,
+             blinky = initBlinky,
+             pinky = initPinky,
+             inky = initInky,
+             clyde = initClyde,
              soundControls = if newSTLess0 then newSoundControls else s.soundControls}
     (KeyAction k, Active) -> {s | pacman = Ctr.updateDir  k s.pacman}
     (TimeAction, Active)  ->
       let
         (extra_pts, newBoard) = BCtr.updateBoard s.board s.pacman
-        old_pts      = s.points
-        atePill      = extra_pts == pillPoint
-        atePell      = extra_pts == pelletPoint
+        old_pts = s.points
+        atePill = extra_pts == pillPoint
+        atePell = extra_pts == pelletPoint
         old_pellsAte = s.pellsAte
         new_pellsAte = old_pellsAte + (if atePell then 1 else 0)
         old_pillsAte = s.pillsAte
         new_pillsAte = old_pillsAte + (if atePill then 1 else 0)
-        level_done   = new_pillsAte + new_pellsAte == totPills + totPells
-        stopFlee     = s.timers.fleeTimer >= fleeTime
-        tmers        = s.timers
-        newTimers    =
-          {tmers | gameTimer   =
+        level_done = new_pillsAte + new_pellsAte == totPills + totPells
+        stopFlee = s.timers.fleeTimer >= fleeTime
+        tmers = s.timers
+        newTimers =
+          {tmers | gameTimer =
                      tmers.gameTimer + (if tmers.fleeTimer > 0 then 0 else 0.025)
-                 , fleeTimer   =
+                 , fleeTimer =
                      if stopFlee || not s.timers.fleeTimerOn || atePill then
                         0
                      else
@@ -408,35 +396,35 @@ upstate a s =
                         0.3
                      else
                         tmers.pelletSoundTimer - 0.025}
-        sCs              = s.soundControls
+        sCs = s.soundControls
         newSoundControls = if atePill || atePell then
                               {sCs | eatPellet = True}
                            else if newTimers.pelletSoundTimer <= 0 then
                               {sCs | eatPellet = False}
                            else
                               sCs
-        s' = {s | pacman        = Ctr.updatePacPos s.pacman newTimers.fleeTimerOn
-                , board         = newBoard
-                , points        = old_pts + extra_pts
-                , pellsAte      = new_pellsAte
-                , pillsAte      = new_pillsAte
-                , timers        = newTimers
-                , ghostPoints   = if atePill then ghostPoints else s.ghostPoints
+        s' = {s | pacman = Ctr.updatePacPos s.pacman newTimers.fleeTimerOn
+                , board = newBoard
+                , points = old_pts + extra_pts
+                , pellsAte = new_pellsAte
+                , pillsAte = new_pillsAte
+                , timers = newTimers
+                , ghostPoints = if atePill then ghostPoints else s.ghostPoints
                 , soundControls = newSoundControls}
       in
         if level_done
         then
-          {initState | points     = s'.points,
+          {initState | points = s'.points,
                        extraLives = s'.extraLives,
-                       gameState  = Loading,
-                       timers     = {initTimers | startTimer = initTimers.startTimer / 2},
-                       raviMode   = s'.raviMode,
-                       level      = s'.level + 1}
+                       gameState = Loading,
+                       timers = {initTimers | startTimer = initTimers.startTimer / 2},
+                       raviMode = s'.raviMode,
+                       level = s'.level + 1}
         else
           Itr.interact <| GCtr.updateGhosts s'
 
                 atePill
-    (TimeAction, Over)   ->
+    (TimeAction, Over) ->
       if s.timers.overTimer <= 0 then
         let
           sCs = s.soundControls

@@ -41,7 +41,7 @@ pacman d r ravi =
         tri = case d of
                 Left -> polygon [(0,0), (-r',-m), (-r',m)]
                 Right -> polygon [(0,0), (r',-m), (r',m)]
-                Up  -> polygon [(0,0), (m,r'), (-m,r')]
+                Up -> polygon [(0,0), (m,r'), (-m,r')]
                 Down -> polygon [(0,0), (m,-r'), (-m,-r')]
         s = 2 * (floor r)
     in
@@ -150,10 +150,3 @@ view (w, h) forms =
   case forms of
     [] -> collage w h [background (toFloat w) (toFloat h)]
     f::_ -> collage w h [background (toFloat w) (toFloat h), f]
-
--- --upstate : a -> List Form -> List Form
--- upstate _ (f::fs) =
---  fs ++ [f]
--- main =
---     Sig.map2 view Win.dimensions (Sig.foldp upstate
---                                          (animatePacman Left 50) (Tm.every (Tm.second / 20)))
