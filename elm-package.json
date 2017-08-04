@@ -4,7 +4,7 @@
     "repository": "https://github.com/kghandhi/pacman.git",
     "license": "BSD3",
     "source-directories": [
-        ".",
+        "src",
         "lib/elm-audio"
     ],
     "exposed-modules": [],
