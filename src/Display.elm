@@ -40,7 +40,7 @@ font = ["Andale Mono", "monospace"]
 title w h =
     El.container w (h + 20) El.middle
           <| El.flow El.down
-                 [El.image w h "/graphics/pacman-logo.jpg", El.spacer w 20]
+                 [El.image w h "../graphics/pacman-logo.jpg", El.spacer w 20]
 
 displayBox : Box -> Int -> El.Element
 displayBox b bSide =
@@ -202,8 +202,8 @@ view (w, h) st =
 
         gState_pos = Utl.itow (bSide * numCols) (titleHeight + 20 + (bSide * numRows)) (13.5, 17)
         gState = case st.gameState of
-                   Loading -> El.fittedImage (6 * bSide) bSide "/graphics/loading.png"
-                   Over    -> El.fittedImage (8 * bSide) bSide "/graphics/over.png"
+                   Loading -> El.fittedImage (6 * bSide) bSide "../graphics/loading.png"
+                   Over    -> El.fittedImage (8 * bSide) bSide "../graphics/over.png"
                    _       -> El.empty
 
         rowBuilder bxs = El.flow El.left (List.map (\b -> displayBox b bSide) bxs)
