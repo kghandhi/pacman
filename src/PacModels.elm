@@ -45,12 +45,12 @@ pacman d r ravi =
                 Down -> polygon [(0,0), (m,-r'), (-m,-r')]
         s = 2 * (floor r)
     in
-      if ravi then group [toForm <| El.fittedImage s s "../graphics/ravi.png"
+      if ravi then group [toForm <| El.fittedImage s s "graphics/ravi.png"
                     , filled black <| tri]
       else group [filled yellow <| circle r, filled black <| tri]
 
 makeP c r t = group [filled c <| circle r, t]
-makeR r t = group [toForm <| El.fittedImage (2* (floor r)) (2 * (floor r)) "../graphics/ravi.png", t]
+makeR r t = group [toForm <| El.fittedImage (2* (floor r)) (2 * (floor r)) "graphics/ravi.png", t]
 
 animatePacman : ModDir -> Float -> Bool -> List Form
 animatePacman d r ravi =
@@ -93,9 +93,9 @@ animatePacman d r ravi =
 ghost : String -> Float -> Float -> Bool -> Form
 ghost g w h ravi =
     if (g /= "scared") && ravi && (g /= "dead") then
-      toForm <| El.fittedImage (floor w) (floor h) ("../graphics/" ++ g ++ "ravi.png")
+      toForm <| El.fittedImage (floor w) (floor h) ("graphics/" ++ g ++ "ravi.png")
     else
-      toForm <| El.fittedImage (floor w) (floor h) ("../graphics/" ++ g ++ ".png")
+      toForm <| El.fittedImage (floor w) (floor h) ("graphics/" ++ g ++ ".png")
 
 pellet : Float -> Form
 pellet r =

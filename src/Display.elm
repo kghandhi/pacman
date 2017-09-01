@@ -29,6 +29,9 @@ import Keyboard as Key
 import Char exposing (KeyCode)
 import Set
 
+port title : String
+port title = "Pacman"
+
 unsafeFromJust : Maybe a -> a
 unsafeFromJust maybe =
   case maybe of
@@ -37,10 +40,10 @@ unsafeFromJust maybe =
 
 font = ["Andale Mono", "monospace"]
 
-title w h =
+logo w h =
     El.container w (h + 20) El.middle
           <| El.flow El.down
-                 [El.image w h "../graphics/pacman-logo.jpg", El.spacer w 20]
+                 [El.image w h "graphics/pacman-logo.jpg", El.spacer w 20]
 
 displayBox : Box -> Int -> El.Element
 displayBox b bSide =
@@ -189,10 +192,10 @@ view (w, h) st =
     let
         ravi = st.raviMode
         bSide = (h - magicNumber) // 36
-        titleHeight = 30
-        titleWidth = bSide * 23
+        logoHeight = 30
+        logoWidth = bSide * 23
 
-        ttl = title titleWidth titleHeight
+        ttl = logo logoWidth logoHeight
 
         score = "SCORE: " ++ (toString st.points)
               |> Txt.fromString
@@ -200,17 +203,17 @@ view (w, h) st =
               |> El.leftAligned
         scoreLives = El.flow El.right [score, (displayLives st.extraLives magicNumber ravi)]
 
-        gState_pos = Utl.itow (bSide * numCols) (titleHeight + 20 + (bSide * numRows)) (13.5, 17)
+        gState_pos = Utl.itow (bSide * numCols) (logoHeight + 20 + (bSide * numRows)) (13.5, 17)
         gState = case st.gameState of
-                   Loading -> El.fittedImage (6 * bSide) bSide "../graphics/loading.png"
-                   Over    -> El.fittedImage (8 * bSide) bSide "../graphics/over.png"
+                   Loading -> El.fittedImage (6 * bSide) bSide "graphics/loading.png"
+                   Over    -> El.fittedImage (8 * bSide) bSide "graphics/over.png"
                    _       -> El.empty
 
         rowBuilder bxs = El.flow El.left (List.map (\b -> displayBox b bSide) bxs)
         colBuilder rws = El.flow El.down ([scoreLives] ++ rws)
 
         wFromBxs = bSide * numCols
-        hFromBxs = titleHeight + 20 + (bSide * numRows)
+        hFromBxs = logoHeight + 20 + (bSide * numRows)
 
         pinky_pos = Utl.itow wFromBxs hFromBxs st.pinky.pos
         inky_pos = Utl.itow wFromBxs hFromBxs st.inky.pos
@@ -465,7 +468,7 @@ deathHandleAudio st =
   else Aud.Pause
 
 deathBuilder : Signal (Aud.Event, Aud.Properties)
-deathBuilder = Aud.audio { src = "/sounds/PacManDies.wav",
+deathBuilder = Aud.audio { src = "sounds/PacManDies.wav",
                            triggers = {defaultTriggers | timeupdate = True},
                            propertiesHandler = deathPropertiesHandler,
                            actions = Signal.map deathHandleAudio currState}
@@ -483,7 +486,7 @@ introHandleAudio st =
   else Aud.Pause
 
 introBuilder : Signal (Aud.Event, Aud.Properties)
-introBuilder = Aud.audio { src = "/sounds/pacman_beginning.wav",
+introBuilder = Aud.audio { src = "sounds/pacman_beginning.wav",
                            triggers = {defaultTriggers | timeupdate = True},
                            propertiesHandler = introPropertiesHandler,
                            actions = Signal.map introHandleAudio currState}
@@ -501,7 +504,7 @@ ghostHandleAudio st =
   else Aud.Pause
 
 ghostBuilder : Signal (Aud.Event, Aud.Properties)
-ghostBuilder = Aud.audio { src = "/sounds/pacman_eatghost.wav",
+ghostBuilder = Aud.audio { src = "sounds/pacman_eatghost.wav",
                            triggers = {defaultTriggers | timeupdate = True},
                            propertiesHandler = ghostPropertiesHandler,
                            actions = Signal.map ghostHandleAudio currState}
@@ -519,7 +522,7 @@ pellHandleAudio st =
   else Aud.Pause
 
 pellBuilder : Signal (Aud.Event, Aud.Properties)
-pellBuilder = Aud.audio { src = "/sounds/pacman_chomp.wav",
+pellBuilder = Aud.audio { src = "sounds/pacman_chomp.wav",
                            triggers = {defaultTriggers | timeupdate = True},
                            propertiesHandler = pellPropertiesHandler,
                            actions = Signal.map pellHandleAudio currState}
