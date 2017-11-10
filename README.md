@@ -20,3 +20,5 @@ Run `elm-reactor` and visit [http://localhost:8000/Display.elm]()
 ## Disclaimer
 This game was initially written for a class in the span of ~1 week, so please excuse the bad code. The language has
 changed a lot in the period of time since this game was created, but I will be working in the future to update.
+
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
